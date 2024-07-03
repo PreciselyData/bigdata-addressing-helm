@@ -5,7 +5,7 @@ solution for Spark on Kubernetes.
 
 This helm chart is based
 on [The Geo Addressing SDK for Big Data](https://docs.precisely.com/docs/sftw/hadoop/landingpage/index.html) and is
-useful in quickly
+useful in quickly running the Geo Addressing Application based on Spark.
 
 ## Motivation
 
@@ -49,7 +49,7 @@ useful in quickly
 
 ## Architecture
 
-![geo-addressing-spark_architecture.svg](images%2Fgeo-addressing-spark_architecture.svg)
+![geo-addressing-spark_architecture.svg](images/geo-addressing-spark_architecture.svg)
 
 <br>The core of the geo-addressing-spark helm-chart-based solution relies on the Geo-Addressing SDK (GA-SDK). The robust
 functionality of GA-SDK forms the backbone of our geo-addressing solution, empowering it to deliver accurate and
