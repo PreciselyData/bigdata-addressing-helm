@@ -137,8 +137,7 @@ helm install spark-operator \
 ```
 #### Notes
 > 1. You can find AWS ECR account id by region [on this link](https://docs.aws.amazon.com/emr/latest/EMR-on-EKS-DevelopmentGuide/docker-custom-images-tag.html#docker-custom-images-ECR)
-> 2. EMR version can be chosen according to the Spark version you want the application to run on. [Here](https://docs.aws.amazon.com/emr/latest/ReleaseGuide/Spark-release-history.html) you can find supported versions.
-> 3. If you want to use emr-7.0.0 to be deployed just use `7.0.0` in the command.
+> 2. More details regarding Spark Operator installation can be found [on this link](https://docs.aws.amazon.com/emr/latest/EMR-on-EKS-DevelopmentGuide/spark-operator-gs.html#spark-operator-install)
 
 ## Step 7: Installation of Geo-Addressing-Spark Helm Chart
 
