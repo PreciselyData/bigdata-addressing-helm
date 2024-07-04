@@ -1,0 +1,38 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{include "geo-addressing-spark-cluster-role-binding.name" .}}
+  labels:
+    {{- include "geo-addressing-spark-helm.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.serviceAccount.name }}
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{include "geo-addressing-spark-secret.name" .}}
+  labels:
+    {{- include "geo-addressing-spark-helm.labels" . | nindent 4 }}
+data:
+  aws_access_key: {{ required "A valid geo-addressing-spark.secrets.ACCESS_KEY entry required!" .Values.secrets.ACCESS_KEY | b64enc }}
+  aws_secret_key: {{ required "A valid geo-addressing-spark.secrets.SECRET_KEY entry required!" .Values.secrets.SECRET_KEY | b64enc }}
+---
+{{- if .Values.serviceAccount.create -}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "geo-addressing-spark-helm.serviceAccountName" . }}
+  labels:
+    {{- include "geo-addressing-spark-helm.labels" . | nindent 4 }}
+  {{- with .Values.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+automountServiceAccountToken: {{ .Values.serviceAccount.automount }}
+{{- end }}

@@ -1,0 +1,17 @@
+nameOverride: geo-addressing-spark-eks
+
+global:
+  spark:
+    nodeSelector:
+      default: &default-worker geo-addressing-spark-k8s-worker
+      driver:
+        eks.amazonaws.com/nodegroup: *default-worker
+      executor:
+        eks.amazonaws.com/nodegroup: *default-worker
+  nfs:
+    # Mandatory Parameter, Need to provide this explicitly.
+    fileSystemId: fileSystemId
+    awsRegion: us-east-1
+    storage: 200Gi
+    ## The base path where the volume should be mounted inside the container.
+    volumeMountPath: /mnt/data/geoaddressing-data

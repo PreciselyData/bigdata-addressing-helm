@@ -1,0 +1,114 @@
+apiVersion: "sparkoperator.k8s.io/v1beta2"
+kind: SparkApplication
+metadata:
+  name: {{include "geo-addressing-spark-application.name" .}}
+  labels:
+    {{- include "geo-addressing-spark-helm.labels" . | nindent 4 }}
+spec:
+  type: Scala
+  mode: cluster
+  image: {{ required "A docker image is required for running the geo-addressing spark!" .Values.image.repository }}:{{ .Values.image.tag }}
+  imagePullPolicy: {{ .Values.image.pullPolicy }}
+  mainClass: com.precisely.geospatial.SparkApplication
+  mainApplicationFile: "local:///opt/spark/jars/spark-geospatial-k8-1.0-SNAPSHOT.jar"
+  sparkVersion: {{ .Values.spark.version }}
+  {{- with .Values.spark.conf }}
+  sparkConf:
+    {{- toYaml . | nindent 8 }}
+  {{- end }}
+  restartPolicy:
+    type: Never
+  dynamicAllocation:
+    enabled: {{ .Values.spark.dynamic_allocation }}
+    initialExecutors: {{ .Values.spark.initial_executors }}
+    minExecutors: {{ .Values.spark.min_executors }}
+    maxExecutors: {{ .Values.spark.max_executors }}
+  volumes:
+    - name: {{include "geo-addressing-spark-nfs-pv.name" .}}
+      persistentVolumeClaim:
+        claimName: {{include "geo-addressing-spark-nfs-pvc.name" .}}
+  driver:
+    cores: {{ .Values.spark.driver.cores }}
+    memory: {{ .Values.spark.driver.memory }}
+    labels:
+      {{- include "geo-addressing-spark-helm.labels" . | nindent 4 }}
+    {{- with .Values.global.spark.nodeSelector.driver }}
+    nodeSelector:
+      {{- toYaml . | nindent 8 }}
+    {{- end }}
+    serviceAccount: {{ .Values.serviceAccount.name }}
+    volumeMounts:
+      - name: {{include "geo-addressing-spark-nfs-pv.name" .}}
+        mountPath: {{ .Values.global.nfs.volumeMountPath }}
+    env:
+      - name: "SPARK_APP_NAME"
+        value: "{{ .Values.spark.app_name }}"
+      - name: "SPARK_LOG_LEVEL"
+        value: "{{ .Values.spark.log_level }}"
+      - name: "DATA_REFERENCES"
+        valueFrom:
+          configMapKeyRef:
+            name: "{{ .Values.global.dataVintage.configMap.name }}"
+            key: "verify-geocode.vintage"
+      - name: "ACCESS_KEY"
+        valueFrom:
+          secretKeyRef:
+            key: "aws_access_key"
+            name: {{include "geo-addressing-spark-secret.name" .}}
+      - name: "SECRET_KEY"
+        valueFrom:
+          secretKeyRef:
+            key: "aws_secret_key"
+            name: {{include "geo-addressing-spark-secret.name" .}}
+      {{- range $name, $value := .Values.env }}
+      - name: "{{ $name }}"
+        value: "{{ $value }}"
+      {{- end }}
+      {{- range $name, $value := .Values.env.kafka }}
+      - name: "{{ $name }}"
+        value: "{{ $value }}"
+      {{- end }}
+      {{- range $name, $value := .Values.env.file }}
+      - name: "{{ $name }}"
+        value: "{{ $value }}"
+      {{- end }}
+  executor:
+    cores: {{ .Values.spark.executor.cores }}
+    memory: {{ .Values.spark.executor.memory }}
+    {{- with .Values.global.spark.nodeSelector.executor }}
+    nodeSelector:
+      {{- toYaml . | nindent 8 }}
+    {{- end }}
+    labels:
+      {{- include "geo-addressing-spark-helm.labels" . | nindent 4 }}
+    volumeMounts:
+      - name: {{include "geo-addressing-spark-nfs-pv.name" .}}
+        mountPath: {{ .Values.global.nfs.volumeMountPath }}
+    env:
+      - name: "DATA_REFERENCES"
+        valueFrom:
+          configMapKeyRef:
+            name: "{{ .Values.global.dataVintage.configMap.name }}"
+            key: "verify-geocode.vintage"
+      - name: "ACCESS_KEY"
+        valueFrom:
+          secretKeyRef:
+            key: "aws_access_key"
+            name: {{include "geo-addressing-spark-secret.name" .}}
+      - name: "SECRET_KEY"
+        valueFrom:
+          secretKeyRef:
+            key: "aws_secret_key"
+            name: {{include "geo-addressing-spark-secret.name" .}}
+      {{- range $name, $value := .Values.env }}
+      - name: "{{ $name }}"
+        value: "{{ $value }}"
+      {{- end }}
+      {{- range $name, $value := .Values.env.kafka }}
+      - name: "{{ $name }}"
+        value: "{{ $value }}"
+      {{- end }}
+      {{- range $name, $value := .Values.env.file }}
+      - name: "{{ $name }}"
+        value: "{{ $value }}"
+      {{- end }}

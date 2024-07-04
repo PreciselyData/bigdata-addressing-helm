@@ -1,0 +1,13 @@
+enabled: ~
+
+nameOverride: "geo-addressing-spark-hook"
+
+serviceAccount:
+  annotations: { }
+
+dataVintage:
+  image:
+    repository: bitnami/kubectl
+    pullPolicy: Always
+    tag: 1.25.12
+    pullSecrets: [ ]
