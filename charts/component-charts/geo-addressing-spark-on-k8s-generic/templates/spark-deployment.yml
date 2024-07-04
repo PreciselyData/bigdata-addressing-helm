@@ -10,7 +10,7 @@ spec:
   image: {{ required "A docker image is required for running the geo-addressing spark!" .Values.image.repository }}:{{ .Values.image.tag }}
   imagePullPolicy: {{ .Values.image.pullPolicy }}
   mainClass: com.precisely.geospatial.SparkApplication
-  mainApplicationFile: "local:///usr/lib/spark/jars/spark-geospatial-k8-1.0-SNAPSHOT.jar"
+  mainApplicationFile: "local:///opt/spark/jars/spark-geospatial-k8-1.0-SNAPSHOT.jar"
   sparkVersion: {{ .Values.spark.version }}
   {{- with .Values.spark.conf }}
   sparkConf:

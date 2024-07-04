@@ -96,7 +96,7 @@ tolerations: [ ]
 spark:
   ## Spark Version is linked with the docker image that is being provided.
   ## Please change or download the required docker image for the specific spark version.
-  version: "3.5.0"
+  version: "3.5.1"
   app_name: "localApp"
   log_level: "warn"
   dynamic_allocation: true

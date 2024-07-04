@@ -27,7 +27,7 @@ useful in quickly running the Geo Addressing Application based on Spark.
     - Minimize the need for extensive setup or configuration.
 
 5. **Language-Barrier Elimination:**
-    - Integrate difference input or output sources just using configurations.
+    - Integrate different input or output sources just using configurations.
     - Provide input data in bulk through any supported input source and save it to any supported output source.
     - Eliminate language barriers, enabling broader compatibility.
 
@@ -57,8 +57,6 @@ efficient
 geo-addressing-spark services while maintaining data integrity and usability.
 
 ### Capabilities
-
-Within this architecture, there are two key types of microservices:
 
 _Geo Addressing Service with Spark_:
 
@@ -91,7 +89,7 @@ platform:
 
 #### 4. Create a Persistent Volume
 
-Create or user an existing persistent volume for storing geo-addressing reference-data. Follow the guides to get the
+Create or use an existing persistent volume for storing geo-addressing reference-data. Follow the guides to get the
 steps for specific cloud platform:
 [EKS](docs/guides/eks/QuickStartEKS.md#step-4-create-elastic-file-system-efs)
 
@@ -103,7 +101,7 @@ specific cloud platform:
 
 #### 6. Installation of Spark Operator Helm Chart
 
-Deploy the geo-addressing application using helm. Follow the guides to get the steps for specific cloud platform:
+Deploy the Spark Operator using helm. Follow the guides to get the steps for specific cloud platform:
 [EKS](docs/guides/eks/QuickStartEKS.md#step-6-installation-of-spark-operator-helm-chart)
 
 #### 7. Deploy the Geo Addressing Spark application
@@ -130,17 +128,17 @@ Deploy the geo-addressing-spark application using helm. Follow the guides to get
 
 > NOTE: As of now, geo-addressing helm chart is only supported for AWS EKS.
 
-## Geo-Addressing Helm Version Chart
+## Geo-Addressing Spark Helm Version Chart
 
-Following is the helm version chart against geo-addressing PDX docker image version and GA-SDK version.
+Following is the helm version chart against geo-addressing-spark PDX docker image version and GA-SDK version.
 
 | Docker Image PDX Version & GA-SDK Version | Spark Version | Helm Chart Version |
 |-------------------------------------------|---------------|--------------------|
-| `1.0.0/2024.6/18th June 2024` & `5.1.682` | 3.5.0         | `0.1.0`            |
+| `1.0.0/2024.6/18th June 2024` & `5.1.682` | 3.5.1         | `0.1.0`            |
 
 > NOTE: The docker images pushed to the image repository should be tagged with the current helm chart version.
 
-Refer [Downloading Geo-Addressing Docker Images](docs/guides/eks/QuickStartEKS.md#step-3-download-geo-addressing-spark-docker-images)
+Refer [Downloading Geo-Addressing-Spark Docker Images](docs/guides/eks/QuickStartEKS.md#step-3-download-geo-addressing-spark-docker-images)
 for more information.
 
 ## Miscellaneous
