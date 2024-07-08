@@ -50,6 +50,7 @@ spec:
           configMapKeyRef:
             name: "{{ .Values.global.dataVintage.configMap.name }}"
             key: "verify-geocode.vintage"
+      {{- if and (.Values.secrets.ACCESS_KEY) (.Values.secrets.SECRET_KEY) }}
       - name: "ACCESS_KEY"
         valueFrom:
           secretKeyRef:
@@ -60,6 +61,7 @@ spec:
           secretKeyRef:
             key: "aws_secret_key"
             name: {{include "geo-addressing-spark-secret.name" .}}
+      {{- end }}
       {{- range $name, $value := .Values.env }}
       - name: "{{ $name }}"
         value: "{{ $value }}"
@@ -90,6 +92,7 @@ spec:
           configMapKeyRef:
             name: "{{ .Values.global.dataVintage.configMap.name }}"
             key: "verify-geocode.vintage"
+      {{- if and (.Values.secrets.ACCESS_KEY) (.Values.secrets.SECRET_KEY) }}
       - name: "ACCESS_KEY"
         valueFrom:
           secretKeyRef:
@@ -100,6 +103,7 @@ spec:
           secretKeyRef:
             key: "aws_secret_key"
             name: {{include "geo-addressing-spark-secret.name" .}}
+      {{- end }}
       {{- range $name, $value := .Values.env }}
       - name: "{{ $name }}"
         value: "{{ $value }}"

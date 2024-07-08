@@ -20,8 +20,10 @@ metadata:
   labels:
     {{- include "geo-addressing-spark-helm.labels" . | nindent 4 }}
 data:
-  aws_access_key: {{ required "A valid geo-addressing-spark.secrets.ACCESS_KEY entry required!" .Values.secrets.ACCESS_KEY | b64enc }}
-  aws_secret_key: {{ required "A valid geo-addressing-spark.secrets.SECRET_KEY entry required!" .Values.secrets.SECRET_KEY | b64enc }}
+  {{- if and (.Values.secrets.ACCESS_KEY) (.Values.secrets.SECRET_KEY) }}
+  aws_access_key: {{ .Values.secrets.ACCESS_KEY | b64enc }}
+  aws_secret_key: {{ .Values.secrets.SECRET_KEY | b64enc }}
+  {{- end}}
 ---
 {{- if .Values.serviceAccount.create -}}
 apiVersion: v1
