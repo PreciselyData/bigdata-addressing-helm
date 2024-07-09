@@ -164,8 +164,9 @@ helm install geo-addressing-spark ./charts/eks/geo-addressing-spark-on-k8s \
 --set "geo-addressing-spark.env.OUT_SOURCE=s3" \
 --set "geo-addressing-spark.env.file.INPUT_PATH=s3a://[path-to-your-data]" \
 --set "geo-addressing-spark.env.file.OUTPUT_PATH=s3a://[path-to-output-folder]" \
---set "geo-addressing-spark.env.ADDITIONAL_OPTIONS_READ=header=true" \
---set "geo-addressing-spark.env.ADDITIONAL_OPTIONS_WRITE=checkpointLocation=s3a://[path-to-checkpoint-location],sep=|\,header=true" \
+--set "geo-addressing-spark.env.READ_OPTIONS=header=true" \
+--set "geo-addressing-spark.env.WRITE_OPTIONS=sep=|\,header=true" \
+--set "geo-addressing-spark.env.STREAM_CHECKPOINT_DIR=s3a://[path-to-checkpoint-location]" \
 --set "geo-addressing-spark.env.INPUT_FIELDS=streetAddress as addressLines[0]\, locationAddress as country" \
 --set "geo-addressing-spark.env.OUTPUT_FIELDS=address.formattedStreetAddress as formattedStreetAddress\,address.formattedLocationAddress as formattedLocationAddress\,location.feature.geometry.coordinates.x as x\,location.feature.geometry.coordinates.y as y\,customFields['PB_KEY'] as 'PB_KEY'" \
 --namespace geo-spark \
@@ -189,6 +190,7 @@ helm install geo-addressing-spark ./charts/eks/geo-addressing-spark-on-k8s \
 * ``geo-addressing-spark.serviceAccount.name`` should be same as the one provided in the Spark Operator helm command.
 * ``geo-addressing-spark.env.IN_SOURCE`` Choose what should be your source of input data. [local,s3,Kafka]
 * ``geo-addressing-spark.env.OUT_SOURCE`` Choose what should be your destination for output data. [local,s3,Kafka]
+* ``geo-addressing-spark.env.STREAM_CHECKPOINT_DIR`` Provide a location where streaming metadata can be saved so that if spark job gets redeployed then it can resume from last point.
 
 For more information on helm values, follow [this link](../../../charts/component-charts/geo-addressing-spark-on-k8s-generic/README.md#helm-values).
 
