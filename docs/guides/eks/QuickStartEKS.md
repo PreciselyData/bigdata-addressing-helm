@@ -113,7 +113,7 @@ You can make use of a [miscellaneous helm chart for installing reference data](.
 helm install reference-data ./charts/eks/reference-data-setup/ \
 --set "global.pdxApiKey=[your-pdx-key]" \
 --set "global.pdxSecret=[your-pdx-secret]" \
---set "global.efs.fileSystemId=[fileSystemId]" \
+--set "global.nfs.fileSystemId=[fileSystemId]" \
 --set "dataDownload.image.repository=[reference-data-image-repository]" \
 --dependency-update --timeout 60m
 ```
@@ -130,14 +130,16 @@ helm install spark-operator \
   --set emrContainers.awsRegion=[aws-region] \
   --set webhook.enable=true \
   --set serviceAccounts.sparkoperator.name=geo-spark-sa \
-  --version [version-tag-for-spark-operator] \
+  --version [emr-version-tag-for-spark-operator] \
   --namespace geo-spark \
   --create-namespace
 
 ```
 #### Notes
 > 1. You can find AWS ECR account id by region [on this link](https://docs.aws.amazon.com/emr/latest/EMR-on-EKS-DevelopmentGuide/docker-custom-images-tag.html#docker-custom-images-ECR)
-> 2. More details regarding Spark Operator installation can be found [on this link](https://docs.aws.amazon.com/emr/latest/EMR-on-EKS-DevelopmentGuide/spark-operator-gs.html#spark-operator-install)
+> 2. EMR version can be chosen from available EMR releases. [Here](https://docs.aws.amazon.com/emr/latest/ReleaseGuide/Spark-release-history.html) you can find available versions.
+> 3. If you want to use emr-7.0.0 version to be deployed just use `7.0.0` in the command.
+> 4. More details regarding Spark Operator installation can be found [on this link](https://docs.aws.amazon.com/emr/latest/EMR-on-EKS-DevelopmentGuide/spark-operator-gs.html#spark-operator-install)
 
 ## Step 7: Installation of Geo-Addressing-Spark Helm Chart
 
@@ -153,7 +155,7 @@ helm install geo-addressing-spark ./charts/eks/geo-addressing-spark-on-k8s \
 --set "global.spark.nodeSelector.driver.eks\.amazonaws\.com/nodegroup=[driver-nodegroup]" \
 --set "global.spark.nodeSelector.executor.eks\.amazonaws\.com/nodegroup=[executor-nodegroup]" \
 --set "geo-addressing-spark.serviceAccount.name=geo-spark-sa" \
---set "geo-addressing-spark.geo-addressing-spark-hook.enabled=false" \
+--set "geo-addressing-spark.geo-addressing-spark-hook.enabled=true" \
 --set "geo-addressing-spark.image.repository=[aws-account-id].dkr.ecr.[aws-region].amazonaws.com/geo-addressing-spark-on-k8s" \
 --set "geo-addressing-spark.image.tag=0.1.0" \
 --set "geo-addressing-spark.secrets.ACCESS_KEY=[aws-access-key]" \
@@ -162,9 +164,11 @@ helm install geo-addressing-spark ./charts/eks/geo-addressing-spark-on-k8s \
 --set "geo-addressing-spark.env.OUT_SOURCE=s3" \
 --set "geo-addressing-spark.env.file.INPUT_PATH=s3a://[path-to-your-data]" \
 --set "geo-addressing-spark.env.file.OUTPUT_PATH=s3a://[path-to-output-folder]" \
---set "geo-addressing-spark.env.ADDITIONAL_OPTIONS_READ=header=true" \
---set "geo-addressing-spark.env.ADDITIONAL_OPTIONS_WRITE=checkpointLocation=s3a://[path-to-checkpoint-location],sep=|\,header=true" \
+--set "geo-addressing-spark.env.READ_OPTIONS=header=true" \
+--set "geo-addressing-spark.env.WRITE_OPTIONS=sep=|\,header=true" \
+--set "geo-addressing-spark.env.STREAM_CHECKPOINT_DIR=s3a://[path-to-checkpoint-location]" \
 --set "geo-addressing-spark.env.INPUT_FIELDS=streetAddress as addressLines[0]\, locationAddress as country" \
+--set "geo-addressing-spark.env.OUTPUT_FIELDS=address.formattedStreetAddress as formattedStreetAddress\,address.formattedLocationAddress as formattedLocationAddress\,location.feature.geometry.coordinates.x as x\,location.feature.geometry.coordinates.y as y\,customFields['PB_KEY'] as 'PB_KEY'" \
 --namespace geo-spark \
 --create-namespace \
 --dependency-update
@@ -186,6 +190,7 @@ helm install geo-addressing-spark ./charts/eks/geo-addressing-spark-on-k8s \
 * ``geo-addressing-spark.serviceAccount.name`` should be same as the one provided in the Spark Operator helm command.
 * ``geo-addressing-spark.env.IN_SOURCE`` Choose what should be your source of input data. [local,s3,Kafka]
 * ``geo-addressing-spark.env.OUT_SOURCE`` Choose what should be your destination for output data. [local,s3,Kafka]
+* ``geo-addressing-spark.env.STREAM_CHECKPOINT_DIR`` Provide a location where streaming metadata can be saved so that if spark job gets redeployed then it can resume from last point.
 
 For more information on helm values, follow [this link](../../../charts/component-charts/geo-addressing-spark-on-k8s-generic/README.md#helm-values).
 

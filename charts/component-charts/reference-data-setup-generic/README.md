@@ -59,12 +59,13 @@ mentioned [here](../../../scripts/eks/efs-creator/README.md) to create EFS.
 Run the below command for installation of reference data in EFS:
 
 ```shell
-helm install reference-data ./charts/reference-data-setup/ \
+helm install reference-data ./charts/eks/reference-data-setup/ \
 --set "reference-data.config.pdxApiKey=[your-pdx-key]" \
 --set "reference-data.config.pdxSecret=[your-pdx-secret]" \
 --set "reference-data.dataDownload.image.repository=[reference-data-image-repository]" \
 --set "reference-data.config.countries={usa,aus}" \
---set "reference-data.config.dataConfigMap={\"verify-geocode\":{\"usa\":[\"Geocoding MLD US#United States#All USA#Spectrum Platform Data\",\"Geocoding NT Street US#United States#All USA#Spectrum Platform Data\"],\"aus\":[\"Geocoding PSMA Street#Australia#All AUS#Geocoding\",\"Geocoding GNAF Address Point#Australia#All AUS#Geocoding\"]},\"lookup\":{\"usa\":[\"Geocoding MLD US#United States#All USA#Spectrum Platform Data\",\"Geocoding NT Street US#United States#All USA#Spectrum Platform Data\"],\"aus\":[\"Geocoding PSMA Street#Australia#All AUS#Geocoding\",\"Geocoding GNAF Address Point#Australia#All AUS#Geocoding\"]},\"autocomplete\":{\"usa\":[\"Predictive Addressing Points#United States#All USA#Interactive\"],\"aus\":[\"Predictive Addressing Points#Australia#All AUS#Interactive\"]},\"express_data\":{\"usa\":[\"Address Express#United States#All USA#Spectrum Platform Data\",\"POI Express#United States#All USA#Spectrum Platform Data\"],\"aus\":[\"Address Express#Australia#All AUS#Spectrum Platform Data\"]}}" \
+--set "global.nfs.fileSystemId=[fileSystemId]" \
+--set "reference-data.config.dataConfigMap=\{\"verify-geocode\":\{\"usa\":[\"Geocoding MLD US#United States#All USA#Spectrum Platform Data\"\,\"Geocoding NT Street US#United States#All USA#Spectrum Platform Data\"]\,\"aus\":[\"Geocoding PSMA Street#Australia#All AUS#Geocoding\"\,\"Geocoding GNAF Address Point#Australia#All AUS#Geocoding\"]\}\}" \
 --dependency-update --timeout 60m
 ```
 
