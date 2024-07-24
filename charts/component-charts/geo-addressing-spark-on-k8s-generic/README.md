@@ -166,7 +166,7 @@ service.
 | `env.file.OUTPUT_FILE_TYPE` | If the OUT_SOURCE is a file system then define type of file. Can be text,csv,parquet etc.                              | ``      |
 | `env.file.INPUT_PATH`       | Path to the file. Required IN_SOURCE: file system i.e. [local, s3]                                                     |         |
 | `env.file.OUTPUT_PATH`      | Path for the output file. Required OUT_SOURCE: file system i.e. [local, s3]                                            | ``      |
-| `env.file.USE_HIERARCHY`    | To save the output files within the folder having same name as input file. IN/OUT_SOURCE: file system i.e. [local, s3] | `true`  |
+| `env.file.USE_HIERARCHY`    | To save the output files within the folder having same name as input file. IN/OUT_SOURCE: file system i.e. [local, s3] | `false` |
 
 <hr>
 </details>

@@ -70,7 +70,7 @@ and push it to your Elastic Container Repositories.
 (Note: This script requires python, docker and awscli to be installed in your system)
 
 ```shell
-cd ./scripts/images-to-ecr-uploader
+cd ./scripts/eks/images-to-ecr-uploader
 pip install -r requirements.txt
 python upload_ecr.py --pdx-api-key [pdx-api-key] --pdx-api-secret [pdx-secret] --aws-access-key [aws-access-key] --aws-secret [aws-secret] --aws-region [aws-region]
 ```
