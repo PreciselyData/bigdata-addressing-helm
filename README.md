@@ -131,10 +131,11 @@ Deploy the geo-addressing-spark application using helm. Follow the guides to get
 ## Geo-Addressing Spark Helm Version Chart
 
 Following is the helm version chart against geo-addressing-spark PDX docker image version and GA-SDK version.
+Product Name: `GEOCODING GEO ADDRESSING BIG DATA DOCKER IMAGE WORLD GLOBAL ALL GLB`
 
-| Docker Image PDX Version & GA-SDK Version | Spark Version | Helm Chart Version |
-|-------------------------------------------|---------------|--------------------|
-| `1.0.0/2024.6/18th June 2024` & `5.1.682` | 3.5.1         | `0.1.0`            |
+| Docker Image PDX Version & GA-SDK Version           | Spark Version | Helm Chart Version |
+|-----------------------------------------------------|---------------|--------------------|
+| `1.0.0/2024.6/18th June 2024` & `5.1.682` to latest | 3.5.1         | `0.1.0`            |
 
 > NOTE: The docker images pushed to the image repository should be tagged with the current helm chart version.
 
