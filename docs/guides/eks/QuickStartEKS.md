@@ -122,25 +122,29 @@ helm install reference-data ./charts/eks/reference-data-setup/ \
 
 > Note: To deploy Spark Applications smoothly on K8s, we need to install Spark Operator on our EKS cluster.
 
-```shell
-aws ecr get-login-password --region [aws-region] | helm registry login --username AWS --password-stdin [aws-ecr-account-id].dkr.ecr.[aws-region].amazonaws.com
+> Refer [Spark Operator Docs](https://www.kubeflow.org/docs/components/spark-operator/getting-started/) for more information.
 
-helm install spark-operator \
-  oci://[aws-ecr-account-id].dkr.ecr.[aws-region].amazonaws.com/spark-operator \
-  --set emrContainers.awsRegion=[aws-region] \
-  --set webhook.enable=true \
-  --set serviceAccounts.sparkoperator.name=geo-spark-sa \
-  --version [emr-version-tag-for-spark-operator] \
-  --namespace geo-spark \
-  --create-namespace
+> NOTE: Use the same namespace to install geo-addressing-spark helm chart.
+
+```shell
+kubectl create namespace addressing-spark
+
+helm repo add spark-operator https://kubeflow.github.io/spark-operator
+helm repo update
+
+# Install the operator into the spark-operator namespace and wait for deployments to be ready
+helm install spark-operator spark-operator/spark-operator \ 
+    --namespace spark-operator \
+    --set spark.jobNamespaces={addressing-spark} \
+    --create-namespace \
+    --wait
 
 ```
 #### Notes
-> 1. You can find AWS ECR account id by region [on this link](https://docs.aws.amazon.com/emr/latest/EMR-on-EKS-DevelopmentGuide/docker-custom-images-tag.html#docker-custom-images-ECR)
-> 2. EMR version can be chosen from available EMR releases. [Here](https://docs.aws.amazon.com/emr/latest/ReleaseGuide/Spark-release-history.html) you can find available versions.
-> 3. If you want to use emr-7.0.0 version to be deployed just use `7.0.0` in the command.
-> 4. More details regarding Spark Operator installation can be found [on this link](https://docs.aws.amazon.com/emr/latest/EMR-on-EKS-DevelopmentGuide/spark-operator-gs.html#spark-operator-install)
-
+> If you don't have the helm chart installation, you can also use the following command to install spark-operator
+```shell
+kubectl apply -f ./spark-opeator.yml
+```
 ## Step 7: Installation of Geo-Addressing-Spark Helm Chart
 
 > NOTE: For every helm chart version update, make sure you run the [Step 3](#step-3-download-geo-addressing-spark-docker-images) for uploading the docker images with the newest tag.
@@ -148,7 +152,7 @@ helm install spark-operator \
 To install the geo-addressing-spark helm chart, use the following command:
 
 ```shell
-helm install geo-addressing-spark ./charts/eks/geo-addressing-spark-on-k8s \
+helm install addressing-spark ./charts/eks/geo-addressing-spark-on-k8s \
 --set "global.nfs.awsRegion=[aws-region]" \ 
 --set "global.nfs.fileSystemId=[fileSystemId]" \
 --set "global.countries={usa,can,aus,nzl}" \
@@ -169,7 +173,7 @@ helm install geo-addressing-spark ./charts/eks/geo-addressing-spark-on-k8s \
 --set "geo-addressing-spark.env.STREAM_CHECKPOINT_DIR=s3a://[path-to-checkpoint-location]" \
 --set "geo-addressing-spark.env.INPUT_FIELDS=streetAddress as addressLines[0]\, locationAddress as country" \
 --set "geo-addressing-spark.env.OUTPUT_FIELDS=address.formattedStreetAddress as formattedStreetAddress\,address.formattedLocationAddress as formattedLocationAddress\,location.feature.geometry.coordinates.x as x\,location.feature.geometry.coordinates.y as y\,customFields['PB_KEY'] as 'PB_KEY'" \
---namespace geo-spark \
+--namespace addressing-spark \
 --create-namespace \
 --dependency-update
 ```
