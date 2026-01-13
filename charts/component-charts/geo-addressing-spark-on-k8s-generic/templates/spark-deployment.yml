@@ -48,7 +48,7 @@ spec:
       - name: "DATA_REFERENCES"
         valueFrom:
           configMapKeyRef:
-            name: "{{ .Values.global.dataVintage.configMap.name }}"
+            name: {{ include "spark-data-config.name" . }}
             key: "verify-geocode.vintage"
       {{- if and (.Values.secrets.ACCESS_KEY) (.Values.secrets.SECRET_KEY) }}
       - name: "ACCESS_KEY"
@@ -90,7 +90,7 @@ spec:
       - name: "DATA_REFERENCES"
         valueFrom:
           configMapKeyRef:
-            name: "{{ .Values.global.dataVintage.configMap.name }}"
+            name: {{ include "spark-data-config.name" . }}
             key: "verify-geocode.vintage"
       {{- if and (.Values.secrets.ACCESS_KEY) (.Values.secrets.SECRET_KEY) }}
       - name: "ACCESS_KEY"

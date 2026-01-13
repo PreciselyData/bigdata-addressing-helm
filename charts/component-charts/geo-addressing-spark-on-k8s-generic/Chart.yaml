@@ -27,4 +27,3 @@ dependencies:
   - name: geo-addressing-spark-hook
     repository: file://charts/geo-addressing-spark-hook
     version: "0.1.0"
-    condition: geo-addressing-spark-hook.enabled

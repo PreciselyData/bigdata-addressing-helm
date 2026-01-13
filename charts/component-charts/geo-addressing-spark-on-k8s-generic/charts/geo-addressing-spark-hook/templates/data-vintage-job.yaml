@@ -1,4 +1,4 @@
-{{- if .Values.enabled }}
+{{- if not .Values.global.manualDataConfig.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:

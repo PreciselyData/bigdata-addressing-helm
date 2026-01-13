@@ -72,3 +72,15 @@ Create the name of the service account to use
 {{- define "geo-addressing-spark-application.name" -}}
 {{- printf "%s-%s" .Release.Name .Release.Namespace | trunc 63 | trimSuffix "-" }}
 {{- end }}
+
+
+{{/*
+Geo Addressing Spark Reference Data Config Map Name
+*/}}
+{{- define "spark-data-config.name" -}}
+{{- if .Values.global.manualDataConfig.enabled }}
+{{- printf "%s-%s" .Values.global.manualDataConfig.nameOverride .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s" .Values.global.dataVintage.configMap.name }}
+{{- end }}
+{{- end }}

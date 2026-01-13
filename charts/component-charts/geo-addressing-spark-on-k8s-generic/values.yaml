@@ -20,12 +20,16 @@ global:
     ##
     ## [NOTE]: if your data for verify-geocode is not present in the format `verify-geocode/[country]/[timestamp]/[vintage]`, this parameter needs to be overridden.
     addressingBasePath: verify-geocode
+
   dataVintage:
     configMap:
       name: geo-addressing-spark-data-mnt-config
 
-geo-addressing-spark-hook:
-  enabled: true
+  manualDataConfig:
+    enabled: false
+    nameOverride: geo-addressing-spark-data-mnl-config
+    configMapData:
+      verify-geocode.vintage: /mnt/data/geoaddressing-data/verify-geocode/usa/202512040455
 
 roleName: spark-role
 
