@@ -16,7 +16,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: "hook-{{ .Release.Name }}-role"
+  name: "{{ .Release.Name }}-role"
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
     "helm.sh/hook-weight": "1"
@@ -38,7 +38,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: "hook-{{ .Release.Name }}-role-binding"
+  name: "{{ .Release.Name }}-role-binding"
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
     "helm.sh/hook-weight": "1"
@@ -49,5 +49,5 @@ subjects:
     name: "ref-{{ .Release.Name }}-sa"
 roleRef:
   kind: Role
-  name: "hook-{{ .Release.Name }}-role"
+  name: "{{ .Release.Name }}-role"
   apiGroup: rbac.authorization.k8s.io

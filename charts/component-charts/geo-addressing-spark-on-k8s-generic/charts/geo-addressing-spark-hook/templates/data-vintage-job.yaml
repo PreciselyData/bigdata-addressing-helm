@@ -54,7 +54,7 @@ spec:
              "{{ .Values.global.countries | join "," }}"
           ]
       terminationGracePeriodSeconds: 0
-      {{- with .Values.global.nodeSelector }}
+      {{- with .Values.global.spark.nodeSelector.driver }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}

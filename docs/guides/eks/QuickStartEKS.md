@@ -186,7 +186,6 @@ helm install addressing-spark ./charts/eks/geo-addressing-spark-on-k8s \
 
 * ``global.awsRegion``: AWS Region
 * ``global.nfs.fileSystemId``: The ID of the EFS mounted with the cluster and contains the reference data.
-* ``global.nodeSelector``: The node selector to run the geo-addressing solutions on nodes of the cluster. Should be a amd64 based Node group.
 * ``global.countries``: Required countries for Geo-Addressing (e.g. ``--set "global.countries={usa,deu,gbr}"``).
   Provide a comma separated list to enable a particular set of countries from: `{usa,gbr,deu,aus,fra,can,mex,bra,arg,rus,ind,sgp,nzl,jpn,world}`
 * ``geo-addressing-spark.image.repository``: The ECR image repository for the geo-addressing-spark image

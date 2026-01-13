@@ -5,4 +5,6 @@ data:
   {{- .Values.global.manualDataConfig.configMapData | toYaml | nindent 2 }}
 metadata:
   name: {{ printf "%s-%s" .Values.global.manualDataConfig.nameOverride .Release.Name | trunc 63 | trimSuffix "-" }}
+  labels:
+    {{- include "geo-addressing-spark-data-config.selectorLabels" . | nindent 4 }}
 {{- end }}

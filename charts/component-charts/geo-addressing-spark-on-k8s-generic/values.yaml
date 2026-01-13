@@ -1,57 +1,22 @@
 ## Default values for geo-addressing-spark-helm.
 ## This is a YAML-formatted file.
 ## Declare variables to be passed into your templates.
-global:
-  nodeSelector: { }
-  ##
-  ## parameter to enable or disable a specific country data to be loaded in the memory
-  countries:
-    - usa
-    - gbr
-    - aus
-    - nzl
-    - can
-  nfs:
-    ##
-    ## The base path where the volume should be mounted inside the container.
-    volumeMountPath: /mnt/data/geoaddressing-data
-    ##
-    ## The base path where the data is present for verify-geocode functionalities.
-    ##
-    ## [NOTE]: if your data for verify-geocode is not present in the format `verify-geocode/[country]/[timestamp]/[vintage]`, this parameter needs to be overridden.
-    addressingBasePath: verify-geocode
-
-  dataVintage:
-    configMap:
-      name: geo-addressing-spark-data-mnt-config
-
-  manualDataConfig:
-    enabled: false
-    nameOverride: geo-addressing-spark-data-mnl-config
-    configMapData:
-      verify-geocode.vintage: /mnt/data/geoaddressing-data/verify-geocode/usa/202512040455
-
 roleName: spark-role
 
 image:
-  repository: # mandatory parameter to be provided in the command
-  tag: "0.1.0"
-  pullPolicy: "Always"
+  repository: ~
+  tag: ~
+  pullPolicy: ~
 
-imagePullSecrets: [ ]
+imagePullSecrets: ~
 nameOverride: ""
 fullnameOverride: ""
 
 serviceAccount:
-  # Specifies whether a service account should be created
   create: false
-  # Automatically mount a ServiceAccount's API credentials?
   automount: true
-  # Annotations to add to the service account
   annotations: { }
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: "spark"
+  name: ~
 
 securityContext: { }
   # capabilities:
@@ -97,55 +62,10 @@ volumeMounts: [ ]
 
 tolerations: [ ]
 
-spark:
-  ## Spark Version is linked with the docker image that is being provided.
-  ## Please change or download the required docker image for the specific spark version.
-  version: "3.5.1"
-  app_name: "localApp"
-  log_level: "warn"
-  dynamic_allocation: true
-  initial_executors: 1
-  min_executors: 1
-  max_executors: 10
-  driver:
-    cores: 1
-    memory: "2g"
-  executor:
-    cores: 7
-    memory: "16g"
-  conf:
-    "spark.sql.streaming.schemaInference": "true"
-    "spark.sql.files.maxPartitionBytes": "64430"
+spark: ~
 
-secrets:
-  ACCESS_KEY: # Need to provide this explicitly
-  SECRET_KEY: # Need to provide this explicitly
+secrets: ~
 
-env:
-  ENV: dev
-  IS_STREAMING: true #Keep it to true. Setting it to false may lead to unexpected errors.
-  OPERATION: "geocode"
-  IN_SOURCE: "s3"
-  OUT_SOURCE: "s3"
-  kafka:
-    INPUT_TOPIC:
-    INPUT_BOOTSTRAP_SERVER:
-    INPUT_SCHEMA:
-    OUTPUT_TOPIC:
-    OUTPUT_BOOTSTRAP_SERVER:
-  file:
-    INPUT_FILE_TYPE: "csv"
-    OUTPUT_FILE_TYPE: "csv"
-    INPUT_PATH:
-    OUTPUT_PATH:
-    USE_HIERARCHY: "false"
-  RETAIN_COLUMNS: true
-  READ_OPTIONS:
-  WRITE_OPTIONS:
-  STREAM_CHECKPOINT_DIR:
-  ERROR_FIELD: "error"
-  JSON_RESPONSE:
-  INPUT_FIELDS:
-  OUTPUT_FIELDS:
-  REPARTITION_NUM:
-  COALESCE_NUM:
+preferences: ~
+
+env: ~

@@ -1,6 +1,10 @@
 nameOverride: geo-addressing-spark-eks
 
 global:
+  ## parameter to enable or disable a specific country data to be loaded in the memory
+  countries:
+    - usa
+  # Parameters of NodeSelector for Spark Driver and Executor pods
   spark:
     nodeSelector:
       default: &default-worker geo-addressing-spark-k8s-worker
@@ -13,5 +17,202 @@ global:
     fileSystemId: fileSystemId
     awsRegion: us-east-1
     storage: 200Gi
+    ##
     ## The base path where the volume should be mounted inside the container.
     volumeMountPath: /mnt/data/geoaddressing-data
+    ##
+    ## The base path where the data is present for verify-geocode functionalities.
+    ##
+    ## [NOTE]: if your data for verify-geocode is not present in the format `verify-geocode/[country]/[timestamp]/[vintage]`, this parameter needs to be overridden.
+    addressingBasePath: verify-geocode
+
+  ##
+  ## For Auto Identification of Latest Data Vintage, a helm hook is run to create the configMap.
+  ## the dataVintage.configMap.name will be used to get the vintage information from configMap
+  ## But, if you want to disable the hook,
+  ## you can set the manualDataConfig.enabled to true and provide the vintage information manually.
+  ##
+  dataVintage:
+    configMap:
+      name: geo-addressing-spark-data-mnt-config
+
+  ##
+  ## To disable the automatic data vintage identification via helm hook and provide
+  ## the data vintage information manually, Set enabled to true and provide
+  ## configMapData for data vintage path manually.
+  ##
+  manualDataConfig:
+    enabled: false
+    nameOverride: geo-addressing-spark-data-mnl-config
+    configMapData:
+      verify-geocode.vintage: /mnt/data/geoaddressing-data/verify-geocode/usa/202512040455
+
+geo-addressing-spark:
+  ##
+  ## Geo Addressing SDK for Spark on K8s Docker Image Parameters
+  ##
+  image:
+    repository: # mandatory parameter to be provided in the command
+    tag: "0.1.0"
+    pullPolicy: "Always"
+  imagePullSecrets: [ ]
+
+  ##
+  ## The name of the service account to use.
+  ## If not set and create is true, a name is generated using the fullname template
+  ##
+  serviceAccount:
+    name: "spark-operator-spark"
+
+  ##
+  ## Spark Configuration Parameters
+  ##
+  spark:
+    version: "4.0.1"
+    app_name: "localApp"
+    log_level: "warn"
+    dynamic_allocation: true
+    initial_executors: 1
+    min_executors: 1
+    max_executors: 10
+    driver:
+      cores: 1
+      memory: "2g"
+    executor:
+      cores: 2
+      memory: "8g"
+    conf:
+      # Spark Configurations---
+      "spark.sql.streaming.schemaInference": "true"
+      "spark.sql.files.maxPartitionBytes": "64430"
+
+  ##
+  ## AWS Credentials for S3 access
+  ##
+  secrets:
+    ACCESS_KEY: # Need to provide this explicitly
+    SECRET_KEY: # Need to provide this explicitly
+
+  ##
+  ## Preferences for Geo Addressing SDK
+  ##
+  preferences:
+    # Addressing SDK Preferences---
+    config:
+      default:
+        # default preferences
+        preferences:
+          maxResults: 1
+          returnAllInfo: true
+
+  ##
+  ## Environment Variables for Geo Addressing Spark Application
+  ##
+  env:
+    ENV: dev
+
+    ##
+    ## Streaming Mode Configuration Parameter.
+    ## This will keep the job running in a streaming mode.
+    ## Disable this if you want to run in batch mode.
+    ##
+    IS_STREAMING: true #Keep it to true for streaming!
+
+    ##
+    ## Operation Configuration Parameters, Possible Values: "geocode", "verify", "lookup", "reverseGeocode"
+    ##
+    OPERATION: "geocode"
+
+    ##
+    ## Lookup Key Type Configuration Parameter, Default is "PB_KEY"
+    ## Possible Values: PB_KEY, GNAF_PID, UDPRN, UPRN
+    ##
+    LOOKUP_KEY_TYPE: "PB_KEY"
+
+    ##
+    ## Country Configuration Parameter. Providing country for every job is not mandatory.
+    ## However, we recommend providing country for accurate results.
+    ## e.g. USA, CAN, AUS, NZL, GBR
+    ##
+    COUNTRY:
+
+    ##
+    ## Input and Output Source Configuration Parameters
+    ## Possible Values: "kafka", "s3"
+    ##
+    IN_SOURCE: "s3"
+    OUT_SOURCE: "s3"
+
+    ##
+    ## Kafka Specific Configuration Parameters. Ignore if not using Kafka as input/output source.
+    ##
+    kafka:
+      INPUT_TOPIC:
+      INPUT_BOOTSTRAP_SERVER:
+      INPUT_SCHEMA:
+      OUTPUT_TOPIC:
+      OUTPUT_BOOTSTRAP_SERVER:
+
+    ##
+    ## File Specific Configuration Parameters
+    ##
+    file:
+      INPUT_FILE_TYPE: "csv"
+      OUTPUT_FILE_TYPE: "csv"
+      INPUT_PATH: # Mandatory if IN_SOURCE is s3 e.g. s3a://bucket/input/
+      OUTPUT_PATH: # Mandatory if OUT_SOURCE is s3 e.g. s3a://bucket/output/
+      USE_HIERARCHY: "false" # Set to true to use hierarchy folders in S3 bucket
+    RETAIN_COLUMNS: true
+
+    ##
+    ## Additional READ and WRITE Parameters For File Source.
+    ## These parameters should be provided in the format accepted by Spark read/write options.
+    ## e.g. header=true delimiter=|
+    ##
+    READ_OPTIONS:
+    WRITE_OPTIONS:
+
+    ##
+    ## Checkpoint Directory for Streaming Jobs.
+    ## Should be a path in S3 if running in streaming mode.
+    ##
+    STREAM_CHECKPOINT_DIR:
+
+    ##
+    ## Error Field Name in the Output Data. If the operation fails for any record,
+    ## the error message will be stored in this field. Else it will be null
+    ##
+    ERROR_FIELD: "error"
+
+    ##
+    ## If you want to have complete JSON response from the Geo Addressing SDK.
+    ## e.g. result_json
+    ##
+    JSON_RESPONSE:
+
+    ##
+    ## Mandatory: Input fields as address field mappings, using mixed or camelCase form.
+    ##     INPUT_FIELDS: |-
+    ##        addressLines[0]=1,2,3,4 city=5 admin1=6 postalCode=7
+    ##
+    INPUT_FIELDS:
+
+    ##
+    ## The requested fields to be included in the output.
+    ## Multiple output field expressions should be separated by a space
+    ## and each individual expression should be surrounded by double quotes.
+    ## e.g.
+    ##      OUTPUT_FIELDS: |-
+    ##          'address.formattedStreetAddress as formattedStreetAddress' 'address.formattedAddress as formattedAddress' 'location.feature.geometry.coordinates.x as x' 'location.feature.geometry.coordinates.y as y' \"customFields['PB_KEY'] as 'PB_KEY'\"
+    ## NOTE: For customFields, escaping is required as shown in the example below.
+    ## e.g. \"customFields['PB_KEY'] as 'PB_KEY'\"
+    ##
+    OUTPUT_FIELDS: |
+      'address.formattedStreetAddress as formattedStreetAddress' 'address.formattedAddress as formattedAddress' 'location.feature.geometry.coordinates.x as x' 'location.feature.geometry.coordinates.y as y' \"customFields['PB_KEY'] as 'PB_KEY'\"
+
+    ##
+    ## Spark Performance Tuning Parameters
+    ##
+    REPARTITION_NUM:
+    COALESCE_NUM:
+    LIMIT_NUM:
