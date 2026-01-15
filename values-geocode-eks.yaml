@@ -1,0 +1,69 @@
+geo-addressing-spark:
+  image:
+    repository: <image repository e.g. 603016229191.dkr.ecr.us-east-1.amazonaws.com/geo-addressing-spark-on-k8s>
+    tag: <image tag>
+  spark:
+    version: "4.0.1"
+    executor:
+      core: 2
+      memory: "8g"
+    conf:
+      # e.g. Spark Configurations---
+      "spark.sql.streaming.schemaInference": "true"
+      "spark.sql.files.maxPartitionBytes": "64430"
+  secrets:
+    ACCESS_KEY: <aws-access-key>
+    SECRET_KEY: <aws-secret-key>
+  ##
+  ## Preferences for Geo Addressing SDK
+  ##
+  preferences:
+    # Addressing SDK Preferences---
+    config:
+      default:
+        # default preferences
+        preferences:
+          maxResults: 1
+          returnAllInfo: true
+  env:
+    file:
+      INPUT_PATH: <input file path e.g. "s3a://com-precisely/spark-k8s/input">
+      OUTPUT_PATH: <output file path e.g "s3a://com-precisely/spark-k8s/output/">
+      STREAM_CHECKPOINT_DIR: <checkpoint directory e.g. "s3a://com-precisely/spark-k8s/checkpoint">
+      USE_HIERARCHY: "true"
+    IS_STREAMING: false
+    IN_SOURCE: "s3"
+    OUT_SOURCE: "s3"
+    OPERATION: "geocode"
+    READ_OPTIONS: "header=true delimiter=|"
+    WRITE_OPTIONS: "header=true delimiter=|"
+
+    # Falls back to country from inputFields if provided in INPUT_FIELDS.
+    COUNTRY: "usa"
+    # Provide INPUT_FIELDS and OUTPUT_FIELDS accordingly
+    # Refer Geo Addressing Big Data User Guide -> Geo Addressing SDK -> Spark Integration -> Spark Job -> Addressing Job for more information: https://help.precisely.com/r/p/Geo-Addressing-SDK-for-Big-Data/pub/Latest/en-US/Geo-Addressing-SDK-for-Big-Data-Guide
+    INPUT_FIELDS: |-
+      addressLines[0]=1,2,3,4 city=5 admin1=6 postalCode=7 country=8
+    OUTPUT_FIELDS: |-
+      'address.formattedStreetAddress as formattedStreetAddress' 'address.formattedAddress as formattedAddress' 'location.feature.geometry.coordinates.x as x' 'location.feature.geometry.coordinates.y as y' \"customFields['PB_KEY'] as 'PB_KEY'\"
+    JSON_RESPONSE: "result_json"
+
+global:
+  # this countries array field is not mandatory if manualDataConfig is used
+  countries:
+    - usa
+  nfs:
+    fileSystemId: <your EFS file system id e.g. "fs-0ccdae49cc2c20">
+  manualDataConfig:
+    enabled: true
+    nameOverride: geo-addressing-spark-data-mnl-config
+    configMapData:
+      verify-geocode.vintage: <reference data path e.g. /mnt/data/geoaddressing-data/verify-geocode/usa/202601130631>
+  spark:
+    nodeSelector:
+      driver:
+        # Node Selector for Driver Pod
+        eks.amazonaws.com/nodegroup: geo-addressing-worker
+      executor:
+        # Node Selector for Executor Pod
+        eks.amazonaws.com/nodegroup: geo-addressing-worker

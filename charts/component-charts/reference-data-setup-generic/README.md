@@ -21,7 +21,7 @@ Follow the below steps to create and push the docker image to ECR:
 
 ```shell
 cd ./charts/component-charts/reference-data-setup-generic/docker-images
-docker build . -t reference-data-extractor-geo-addressing-spark:0.1.0
+docker build . -t reference-data-extractor-geo-addressing-spark:1.0.0
 ```
 
 For AWS EKS:
@@ -31,9 +31,9 @@ aws ecr get-login-password --region us-east-1 | docker login --username AWS --pa
 
 aws ecr create-repository --repository-name reference-data-extractor-geo-addressing-spark --image-scanning-configuration scanOnPush=true --region [AWS-REGION]
 
-docker tag reference-data-extractor-geo-addressing-spark:0.1.0 [AWS-ACCOUNT-ID].dkr.ecr.[AWS-REGION].amazonaws.com/reference-data-extractor-geo-addressing-spark:0.1.0
+docker tag reference-data-extractor-geo-addressing-spark:1.0.0 [AWS-ACCOUNT-ID].dkr.ecr.[AWS-REGION].amazonaws.com/reference-data-extractor-geo-addressing-spark:1.0.0
 
-docker push [AWS-ACCOUNT-ID].dkr.ecr.[AWS-REGION].amazonaws.com/reference-data-extractor-geo-addressing-spark:0.1.0
+docker push [AWS-ACCOUNT-ID].dkr.ecr.[AWS-REGION].amazonaws.com/reference-data-extractor-geo-addressing-spark:1.0.0
 ```
 
 For Microsoft AKS:
@@ -42,9 +42,9 @@ For Microsoft AKS:
 az login
 az acr login --name <registry-name> --subscription <subscription-id>
 
-docker tag reference-data-extractor-geo-addressing-spark:0.1.0 <your-container-registry-name>.azurecr.io/reference-data-extractor-geo-addressing-spark:0.1.0
+docker tag reference-data-extractor-geo-addressing-spark:1.0.0 <your-container-registry-name>.azurecr.io/reference-data-extractor-geo-addressing-spark:1.0.0
 
-docker push <your-container-registry-name>.azurecr.io/reference-data-extractor-geo-addressing-spark:0.1.0
+docker push <your-container-registry-name>.azurecr.io/reference-data-extractor-geo-addressing-spark:1.0.0
 ```
 
 ## Step 3: Creating Mounted Storage
@@ -58,15 +58,18 @@ mentioned [here](../../../scripts/eks/efs-creator/README.md) to create EFS.
 
 Run the below command for installation of reference data in EFS:
 
+Edit the [values.yaml](../../eks/reference-data-setup/values.yaml) for providing the information about the reference data to be downloaded.
+
 ```shell
 helm install reference-data ./charts/eks/reference-data-setup/ \
---set "reference-data.config.pdxApiKey=[your-pdx-key]" \
---set "reference-data.config.pdxSecret=[your-pdx-secret]" \
---set "reference-data.dataDownload.image.repository=[reference-data-image-repository]" \
---set "reference-data.config.countries={usa,aus}" \
---set "global.nfs.fileSystemId=[fileSystemId]" \
---set "reference-data.config.dataConfigMap=\{\"verify-geocode\":\{\"usa\":[\"Geocoding MLD US#United States#All USA#Spectrum Platform Data\"\,\"Geocoding NT Street US#United States#All USA#Spectrum Platform Data\"]\,\"aus\":[\"Geocoding PSMA Street#Australia#All AUS#Geocoding\"\,\"Geocoding GNAF Address Point#Australia#All AUS#Geocoding\"]\}\}" \
---dependency-update --timeout 60m
+--set "global.region=<aws-region>" \
+--set "global.nfs.fileSystemId=<efs-file-system-id>" \
+--set "reference-data.dataDownload.image.repository=<e.g. 603016229.dkr.ecr.us-east-1.amazonaws.com/reference-data-extractor>" \
+--set "reference-data.dataDownload.image.tag=<e.g. 1.0.0>" \
+--set "reference-data.config.pdxApiKey=<>pdx-api-key>" \
+--set "reference-data.config.pdxSecret=<pdx-api-secret>" \
+--set "reference-data.config.countries={usa}" \
+--debug --dependency-update --timeout 60m
 ```
 
 ### Helm Values
@@ -82,7 +85,7 @@ provided by this chart:
 | Parameter          | Description                                              | Default                    |
 |--------------------|----------------------------------------------------------|----------------------------|
 | `image.repository` | the reference-data-extractor container image repository  | `reference-data-extractor` |
-| `image.tag`        | the reference-data-extractor container image version tag | `0.1.0`                    |
+| `image.tag`        | the reference-data-extractor container image version tag | `1.0.0`                    |
 
 <hr>
 </details>
@@ -110,7 +113,8 @@ example of default reference data map:
   "verify-geocode": {
     "usa": [
       "Geocoding MLD US#United States#All USA#Spectrum Platform Data",
-      "Geocoding NT Street US#United States#All USA#Spectrum Platform Data"
+      "Geocoding NT Street US#United States#All USA#Spectrum Platform Data",
+      "Geocoding Reverse PRECISELYID#United States#All USA#Spectrum Platform Data"
     ],
     "aus": [
       "Geocoding PSMA Street#Australia#All AUS#Geocoding",
@@ -138,10 +142,6 @@ installing the helm chart as follows:
 > [ProductName#Geography#RoasterGranularity#DataFormat#Vintage]
 >
 > e.g. `Geocoding NT Street US#United States#All USA#Spectrum Platform Data#2023.11`
-
-```shell
---set "reference-data.global.dataConfigMap={\"verify-geocode\":{\"usa\":[\"Geocoding MLD US#United States#All USA#Spectrum Platform Data\",\"Geocoding NT Street US#United States#All USA#Spectrum Platform Data\"],\"aus\":[\"Geocoding PSMA Street#Australia#All AUS#Geocoding\",\"Geocoding GNAF Address Point#Australia#All AUS#Geocoding\"]},\"lookup\":{\"usa\":[\"Geocoding MLD US#United States#All USA#Spectrum Platform Data\",\"Geocoding NT Street US#United States#All USA#Spectrum Platform Data\"],\"aus\":[\"Geocoding PSMA Street#Australia#All AUS#Geocoding\",\"Geocoding GNAF Address Point#Australia#All AUS#Geocoding\"]},\"autocomplete\":{\"usa\":[\"Predictive Addressing Points#United States#All USA#Interactive\"],\"aus\":[\"Predictive Addressing Points#Australia#All AUS#Interactive\"]},\"express_data\":{\"usa\":[\"Address Express#United States#All USA#Spectrum Platform Data\",\"POI Express#United States#All USA#Spectrum Platform Data\"],\"aus\":[\"Address Express#Australia#All AUS#Spectrum Platform Data\"]}}"
-```
 
 ## Monitoring the Helm Chart
 
