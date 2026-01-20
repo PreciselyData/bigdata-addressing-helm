@@ -1,0 +1,33 @@
+# This file is an example configuration for installing the reference data in the EFS
+# Update the placeholders with your specific configuration details before deploying.
+# Refer to the values.yaml of charts/eks/reference-data-setup for more configuration options.
+global:
+  awsRegion: "us-east-1"
+  nfs:
+    fileSystemId: <e.g. "fs-0dae4cc2c20">
+
+reference-data:
+  dataDownload:
+    # You can build and push your own image to your ECR repository
+    # Docker Image build info is availabe in charts/component-charts/reference-data-setup-generic/docker-images
+    # You can build the image using the Dockerfile provided there and push it to your ECR repository
+    image:
+      repository: <image repository e.g. 603018.dkr.ecr.us-east-1.amazonaws.com/bigdata-reference-data-extractor>
+      pullPolicy: Always
+      tag: <e.g. 1.0.0>
+      pullSecrets: [ ]
+  config:
+    # The Precisely Data Experience PDX API credentials
+    # Reference Data is downloaded using PDX APIs
+    # Create your PDX account and generate API credentials
+    pdxApiKey: <PDX-API-KEY>
+    pdxSecret: <PDX-API-SECRET>
+    # Make Sure you have access to the SPDs you are trying to download using your PDX account
+    # Change the following SPD list as per your requirement
+    # Example is provided below for USA Geocoding SPDs
+    # The format is [ProductName#Geography#RoasterGranularity#DataFormat] #Vintage [Optional Last Parameter if you want to install specific vintage]
+    dataConfigMap:
+      spark-addressing-data:
+        - "Geocoding MLD US#United States#All USA#Spectrum Platform Data"
+        - "Geocoding NT Street US#United States#All USA#Spectrum Platform Data"
+        - "Geocoding Reverse PRECISELYID#United States#All USA#Spectrum Platform Data"

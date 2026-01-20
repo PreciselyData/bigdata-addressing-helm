@@ -122,20 +122,19 @@ Deploy the geo-addressing-spark application using helm. Follow the guides to get
 - [Usage Guide](docs/guides/UsageGuide.md)
 - [Troubleshooting Guide](docs/guides/TroubleShoot.md)
 
-## Setup
 
-- [Kubernetes Setup](charts/component-charts/geo-addressing-spark-on-k8s-generic/README.md)
 
-> NOTE: As of now, geo-addressing helm chart is only supported for AWS EKS.
+> NOTE: As of now, geo-addressing helm chart is only supported for AWS EKS or environments that can connect to Amazon S3.
 
 ## Geo-Addressing Spark Helm Version Chart
 
 Following is the helm version chart against geo-addressing-spark PDX docker image version and GA-SDK version.
 Product Name: `GEOCODING GEO ADDRESSING BIG DATA DOCKER IMAGE WORLD GLOBAL ALL GLB`
 
-| Docker Image PDX Version & GA-SDK Version           | Spark Version | Helm Chart Version |
-|-----------------------------------------------------|---------------|--------------------|
-| `1.0.0/2024.6/18th June 2024` & `5.1.682` to latest | 3.5.1         | `0.1.0`            |
+| Docker Image PDX Version & GA-SDK Version | Spark Version | Helm Chart Version |
+|-------------------------------------------|---------------|--------------------|
+| `1.0.0/2024.6/18th June 2024` & `5.1.682` | 3.5.1         | `0.1.0`            |
+| `1.0.0/2026.1/20th Jan 2026` & `11.2.463` | 4.1.1         | `1.0.0`            |
 
 > NOTE: The docker images pushed to the image repository should be tagged with the current helm chart version.
 

@@ -1,0 +1,10 @@
+{{- if .Values.global.manualDataConfig.enabled }}
+apiVersion: v1
+kind: ConfigMap
+data:
+  {{ printf "%s.%s" .Values.global.nfs.addressingBasePath "vintage" }}: {{ .Values.global.manualDataConfig.referenceDataPath }}
+metadata:
+  name: {{ printf "%s-%s" .Values.global.manualDataConfig.nameOverride .Release.Name | trunc 63 | trimSuffix "-" }}
+  labels:
+    {{- include "geo-addressing-spark-data-config.selectorLabels" . | nindent 4 }}
+{{- end }}

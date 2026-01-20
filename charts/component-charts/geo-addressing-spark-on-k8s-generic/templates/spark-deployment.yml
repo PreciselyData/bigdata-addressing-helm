@@ -9,8 +9,8 @@ spec:
   mode: cluster
   image: {{ required "A docker image is required for running the geo-addressing spark!" .Values.image.repository }}:{{ .Values.image.tag }}
   imagePullPolicy: {{ .Values.image.pullPolicy }}
-  mainClass: com.precisely.geospatial.SparkApplication
-  mainApplicationFile: "local:///opt/spark/jars/spark-geospatial-k8-1.0-SNAPSHOT.jar"
+  mainClass: com.precisely.bigdata.geospatial.SparkApplication
+  mainApplicationFile: "local:///opt/bitnami/spark/jars/geo-spatial-spark-on-k8s-1.0.0.jar"
   sparkVersion: {{ .Values.spark.version }}
   {{- with .Values.spark.conf }}
   sparkConf:
@@ -27,6 +27,9 @@ spec:
     - name: {{include "geo-addressing-spark-nfs-pv.name" .}}
       persistentVolumeClaim:
         claimName: {{include "geo-addressing-spark-nfs-pvc.name" .}}
+    - name: preferences-volume
+      configMap:
+        name: {{ include "geo-addressing-spark-preferences-configmap.name" . }}
   driver:
     cores: {{ .Values.spark.driver.cores }}
     memory: {{ .Values.spark.driver.memory }}
@@ -40,6 +43,8 @@ spec:
     volumeMounts:
       - name: {{include "geo-addressing-spark-nfs-pv.name" .}}
         mountPath: {{ .Values.global.nfs.volumeMountPath }}
+      - name: preferences-volume
+        mountPath: "/mnt/data/preferences"
     env:
       - name: "SPARK_APP_NAME"
         value: "{{ .Values.spark.app_name }}"
@@ -48,19 +53,21 @@ spec:
       - name: "DATA_REFERENCES"
         valueFrom:
           configMapKeyRef:
-            name: "{{ .Values.global.dataVintage.configMap.name }}"
-            key: "verify-geocode.vintage"
+            name: {{ include "geo-addressing-spark-data-config.name" . }}
+            key: {{ printf "%s.%s" .Values.global.nfs.addressingBasePath "vintage" }}
+      - name: PREFERENCES_FILE_PATH
+        value: "/mnt/data/preferences/preferences.yaml"
       {{- if and (.Values.secrets.ACCESS_KEY) (.Values.secrets.SECRET_KEY) }}
       - name: "ACCESS_KEY"
         valueFrom:
           secretKeyRef:
             key: "aws_access_key"
-            name: {{include "geo-addressing-spark-secret.name" .}}
+            name: {{ include "geo-addressing-spark-secret.name" . }}
       - name: "SECRET_KEY"
         valueFrom:
           secretKeyRef:
             key: "aws_secret_key"
-            name: {{include "geo-addressing-spark-secret.name" .}}
+            name: {{ include "geo-addressing-spark-secret.name" . }}
       {{- end }}
       {{- range $name, $value := .Values.env }}
       - name: "{{ $name }}"
@@ -86,12 +93,14 @@ spec:
     volumeMounts:
       - name: {{include "geo-addressing-spark-nfs-pv.name" .}}
         mountPath: {{ .Values.global.nfs.volumeMountPath }}
+      - name: preferences-volume
+        mountPath: "/mnt/data/preferences"
     env:
       - name: "DATA_REFERENCES"
         valueFrom:
           configMapKeyRef:
-            name: "{{ .Values.global.dataVintage.configMap.name }}"
-            key: "verify-geocode.vintage"
+            name: {{ include "geo-addressing-spark-data-config.name" . }}
+            key: {{ printf "%s.%s" .Values.global.nfs.addressingBasePath "vintage" }}
       {{- if and (.Values.secrets.ACCESS_KEY) (.Values.secrets.SECRET_KEY) }}
       - name: "ACCESS_KEY"
         valueFrom:

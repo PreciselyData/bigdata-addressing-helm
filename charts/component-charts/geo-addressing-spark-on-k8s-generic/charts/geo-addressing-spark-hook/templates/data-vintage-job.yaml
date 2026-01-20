@@ -1,4 +1,4 @@
-{{- if .Values.enabled }}
+{{- if not .Values.global.manualDataConfig.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -46,15 +46,11 @@ spec:
              "/tmp/vintage-script/data-vintage.sh",
              "{{- .Values.global.nfs.volumeMountPath }}",
              "{{- .Values.global.nfs.addressingBasePath }}",
-             "{{- .Values.global.nfs.autoCompleteBasePath }}",
-             "{{- .Values.global.nfs.lookupBasePath }}",
-             "{{- .Values.global.nfs.reverseBasePath }}",
              "vintages.properties",
              "{{ .Values.global.dataVintage.configMap.name }}",
-             "{{ .Values.global.countries | join "," }}"
           ]
       terminationGracePeriodSeconds: 0
-      {{- with .Values.global.nodeSelector }}
+      {{- with .Values.global.spark.nodeSelector.driver }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}

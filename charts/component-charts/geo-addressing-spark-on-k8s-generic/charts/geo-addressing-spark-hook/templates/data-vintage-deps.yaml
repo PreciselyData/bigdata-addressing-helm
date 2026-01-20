@@ -1,4 +1,4 @@
-{{- if .Values.enabled }}
+{{- if not .Values.global.manualDataConfig.enabled }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -15,7 +15,7 @@ metadata:
     {{- include "geo-addressing-spark-hook.labels" . | nindent 4 }}
 {{- end }}
 ---
-{{- if .Values.enabled }}
+{{- if not .Values.global.manualDataConfig.enabled }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -39,7 +39,7 @@ rules:
       - list
 {{- end }}
 ---
-{{- if .Values.enabled }}
+{{- if not .Values.global.manualDataConfig.enabled }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:

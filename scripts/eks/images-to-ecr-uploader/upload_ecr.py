@@ -198,7 +198,7 @@ LOCAL_PATH = args.local_path
 AWS_REGION = args.aws_region
 AWS_ACCESS_KEY = args.aws_access_key
 AWS_SECRET_KEY = args.aws_secret_key
-image_tag = '0.1.0'
+image_tag = '1.0.0'
 date_folder = str(time.strftime("%Y%m%d%H%M"))
 
 if not AWS_REGION:
@@ -277,7 +277,7 @@ try:
                 print(f"Pushing the docker image to the repository {ecr_url}/{file_name_withour_ext}:{image_tag}")
 
                 print(subprocess.check_output(
-                    f'docker tag {file_name_withour_ext}:latest {ecr_url}/{file_name_withour_ext}:{image_tag}',
+                    f'docker tag {file_name_withour_ext}:1.0.0 {ecr_url}/{file_name_withour_ext}:{image_tag}',
                     shell=True, stderr=subprocess.STDOUT, encoding="utf-8"))
 
                 print(subprocess.check_output(

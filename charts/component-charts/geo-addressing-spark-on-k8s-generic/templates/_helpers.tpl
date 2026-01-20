@@ -72,3 +72,34 @@ Create the name of the service account to use
 {{- define "geo-addressing-spark-application.name" -}}
 {{- printf "%s-%s" .Release.Name .Release.Namespace | trunc 63 | trimSuffix "-" }}
 {{- end }}
+
+{{- define "geo-addressing-spark-preferences-configmap.name" -}}
+{{- printf "%s-%s-%s" .Release.Name .Release.Namespace "preferences" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Preference Configmap Selector labels
+*/}}
+{{- define "geo-addressing-spark-preferences-configmap.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "geo-addressing-spark-preferences-configmap.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Geo Addressing Spark Reference Data Config Map Name
+*/}}
+{{- define "geo-addressing-spark-data-config.name" -}}
+{{- if .Values.global.manualDataConfig.enabled }}
+{{- printf "%s-%s" .Values.global.manualDataConfig.nameOverride .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s" .Values.global.dataVintage.configMap.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Data ConfigMap Selector labels
+*/}}
+{{- define "geo-addressing-spark-data-config.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "geo-addressing-spark-data-config.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

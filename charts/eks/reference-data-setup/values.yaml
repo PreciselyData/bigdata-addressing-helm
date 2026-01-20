@@ -2,3 +2,17 @@ global:
   awsRegion: "us-east-1"
   nfs:
     fileSystemId: fileSystemId
+
+reference-data:
+  config:
+    pdxApiKey: "your-pdx-api-key"
+    pdxSecret: "your-pdx-api-secret"
+    dataConfigMap:
+      spark-addressing-data:
+        ##
+        ## Provide the list of SPDs to be downloaded in the format:
+        ## [ProductName#Geography#RoasterGranularity#DataFormat] #Vintage [Optional Last Parameter if you want to install specific vintage]
+        ##
+        - "Geocoding MLD US#United States#All USA#Spectrum Platform Data"
+        - "Geocoding NT Street US#United States#All USA#Spectrum Platform Data"
+        - "Geocoding Reverse PRECISELYID#United States#All USA#Spectrum Platform Data"

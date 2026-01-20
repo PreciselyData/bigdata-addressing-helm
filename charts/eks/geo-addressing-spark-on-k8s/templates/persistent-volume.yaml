@@ -1,7 +1,7 @@
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
-  name: {{include "geo-addressing-spark-nfs-storage-class.name" .}}
+  name: {{ include "geo-addressing-spark-nfs-storage-class.name" . }}
   labels:
     {{- include "geo-addressing-spark-eks.labels" . | nindent 4 }}
 provisioner: efs.csi.aws.com
@@ -10,7 +10,7 @@ provisioner: efs.csi.aws.com
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: {{include "geo-addressing-spark-nfs-pv.name" .}}
+  name: {{ include "geo-addressing-spark-nfs-pv.name" . }}
   finalizers: [ ]
   labels:
     {{- include "geo-addressing-spark-eks.labels" . | nindent 4 }}
@@ -21,7 +21,7 @@ spec:
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Delete
-  storageClassName: {{include "geo-addressing-spark-nfs-storage-class.name" .}}
+  storageClassName: {{ include "geo-addressing-spark-nfs-storage-class.name" . }}
   csi:
     driver: efs.csi.aws.com
     volumeHandle: {{ .Values.global.nfs.fileSystemId }}
@@ -31,12 +31,12 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{include "geo-addressing-spark-nfs-pvc.name" .}}
+  name: {{ include "geo-addressing-spark-nfs-pvc.name" . }}
   labels:
     {{- include "geo-addressing-spark-eks.labels" . | nindent 4 }}
 spec:
-  storageClassName: {{include "geo-addressing-spark-nfs-storage-class.name" .}}
-  volumeName: {{include "geo-addressing-spark-nfs-pv.name" .}}
+  storageClassName: {{ include "geo-addressing-spark-nfs-storage-class.name" . }}
+  volumeName: {{ include "geo-addressing-spark-nfs-pv.name" . }}
   accessModes:
     - ReadWriteMany
   resources:

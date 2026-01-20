@@ -25,9 +25,9 @@ spec:
       {{- end }}
       restartPolicy: Never
       volumes:
-        - name: geo-addressing-spark-host-volume
+        - name: geoaddressing-host-volume
           persistentVolumeClaim:
-            claimName:  {{include "addressing-ref-pvc.name" .}}
+            claimName:  {{ include "addressing-ref-pvc.name" . }}
       containers:
         - name: data-download-job
           image: "{{ .Values.dataDownload.image.repository }}:{{ .Values.dataDownload.image.tag | default .Chart.AppVersion }}"
@@ -37,14 +37,18 @@ spec:
             - "{{ .Values.config.pdxApiKey }}"
             - "--pdx-api-secret"
             - "{{ .Values.config.pdxSecret }}"
-            - "--countries"
-            - "{{ .Values.config.countries }}"
             - "--dest-path"
             - "{{ .Values.config.mountBasePath }}"
             - "--data-mapping"
-            - {{ .Values.config.dataConfigMap | quote }}
+            - {{ .Values.config.dataConfigMap | toJson | quote }}
+            - "--fail-fast"
+            - "{{ .Values.config.failFastEnabled }}"
+            {{- if .Values.config.timestampFolder }}
+            - "--timestamp"
+            - "{{ .Values.config.timestampFolder }}"
+            {{- end }}
           volumeMounts:
-            - name: geo-addressing-spark-host-volume
+            - name: geoaddressing-host-volume
               mountPath: {{ .Values.config.mountBasePath }}
       terminationGracePeriodSeconds: 0
       {{- with .Values.nodeSelector }}

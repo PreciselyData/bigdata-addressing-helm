@@ -1,4 +1,4 @@
-{{- if index .Values "geo-addressing-spark" "geo-addressing-spark-hook" "enabled" }}
+{{- if not .Values.global.manualDataConfig.enabled }}
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
