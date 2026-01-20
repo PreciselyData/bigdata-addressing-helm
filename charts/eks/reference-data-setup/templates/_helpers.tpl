@@ -2,11 +2,7 @@
 Addressing reference data Storage Class
 */}}
 {{- define "addressing-ref-storage-class.name" -}}
-{{- if .Values.global.nfs.storageClass.enabled }}
 {{- printf "%s-%s" "ref-efs" .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s" .Values.global.nfs.storageClass.name }}
-{{- end }}
 {{- end }}
 
 {{/*

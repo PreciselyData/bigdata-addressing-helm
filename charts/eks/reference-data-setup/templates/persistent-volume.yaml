@@ -1,5 +1,3 @@
----
-{{- if .Values.global.nfs.storageClass.enabled }}
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
@@ -10,7 +8,6 @@ metadata:
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
     "helm.sh/resource-policy": delete
 provisioner: efs.csi.aws.com
-{{- end }}
 ---
 apiVersion: v1
 kind: PersistentVolume
