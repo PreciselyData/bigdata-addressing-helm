@@ -277,7 +277,7 @@ try:
                 print(f"Pushing the docker image to the repository {ecr_url}/{file_name_withour_ext}:{image_tag}")
 
                 print(subprocess.check_output(
-                    f'docker tag {file_name_withour_ext}:latest {ecr_url}/{file_name_withour_ext}:{image_tag}',
+                    f'docker tag {file_name_withour_ext}:1.0.0 {ecr_url}/{file_name_withour_ext}:{image_tag}',
                     shell=True, stderr=subprocess.STDOUT, encoding="utf-8"))
 
                 print(subprocess.check_output(

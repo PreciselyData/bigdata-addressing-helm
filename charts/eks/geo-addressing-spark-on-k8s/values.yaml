@@ -1,9 +1,6 @@
 nameOverride: geo-addressing-spark-eks
 
 global:
-  ## parameter to enable or disable a specific country data to be loaded in the memory
-  countries:
-    - usa
   # Parameters of NodeSelector for Spark Driver and Executor pods
   spark:
     nodeSelector:
@@ -21,10 +18,10 @@ global:
     ## The base path where the volume should be mounted inside the container.
     volumeMountPath: /mnt/data/geoaddressing-data
     ##
-    ## The base path where the data is present for verify-geocode functionalities.
+    ## The base path where the data is present for spark-addressing-data functionalities.
     ##
-    ## [NOTE]: if your data for verify-geocode is not present in the format `verify-geocode/[country]/[timestamp]/[vintage]`, this parameter needs to be overridden.
-    addressingBasePath: verify-geocode
+    ## [NOTE]: if your data for spark-addressing-data is not present in the format `[spark-addressing-data]/[timestamp]/[vintage]`, this parameter needs to be overridden.
+    addressingBasePath: spark-addressing-data
 
   ##
   ## For Auto Identification of Latest Data Vintage, a helm hook is run to create the configMap.
@@ -44,8 +41,7 @@ global:
   manualDataConfig:
     enabled: false
     nameOverride: geo-addressing-spark-data-mnl-config
-    configMapData:
-      verify-geocode.vintage: /mnt/data/geoaddressing-data/verify-geocode/usa/202512040455
+    referenceDataPath: /mnt/data/geoaddressing-data/verify-geocode/usa/202512040455
 
 geo-addressing-spark:
   ##
@@ -68,7 +64,7 @@ geo-addressing-spark:
   ## Spark Configuration Parameters
   ##
   spark:
-    version: "4.0.1"
+    version: "4.1.1"
     app_name: "localApp"
     log_level: "warn"
     dynamic_allocation: true
@@ -80,7 +76,7 @@ geo-addressing-spark:
       memory: "2g"
     executor:
       cores: 2
-      memory: "8g"
+      memory: "12g"
     conf:
       # Spark Configurations---
       "spark.sql.streaming.schemaInference": "true"

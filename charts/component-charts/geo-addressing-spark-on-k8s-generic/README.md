@@ -4,10 +4,6 @@ Built upon the [architecture](../../../README.md#architecture), the geo-addressi
 users, allowing them to configure and set up infrastructure according to their
 specific requirements.
 
-For example, if a user wishes to establish 'verify' and 'geocode' functionalities
-for the 'USA,' 'CAN,' 'GBR,' and 'DEU' countries exclusively, they can provide the necessary configurations during the
-Helm chart installation to deploy this specific type of infrastructure.
-
 ## Getting Started
 
 To get started with installation of helm chart, follow:
@@ -49,10 +45,9 @@ provided by this chart:
 <details>
 <summary><code>global.*</code></summary>
 
-| Parameter                                         | Description                                                                                                                                                                                                                        | Default                        |
-|---------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|
-| `global.countries`                                | this parameter enables the provided country for an addressing functionality. A comma separated value can be provided to enable a particular set of countries from: `usa,gbr,deu,aus,fra,can,mex,bra,arg,rus,ind,sgp,nzl,jpn,world` | `{usa,gbr,aus,nzl,can}`        |
-| `global.nfs.addressingBasePath`                   | the base path of the folder where verify-geocode data is present                                                                                                                                                                   | `verify-geocode`               |
+| Parameter                                         | Description                                                        | Default                 |
+|---------------------------------------------------|--------------------------------------------------------------------|-------------------------|
+| `global.nfs.addressingBasePath`                   | the base path of the folder where spark-addressing-data is present | `spark-addressing-data` |
 
 <hr>
 </details>
@@ -62,7 +57,7 @@ provided by this chart:
 
 | Parameter                  | Description                                                                                                                                                    | Default    |
 |----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
-| `spark.version`            | Spark Version is linked with the docker image that is being provided.                                                                                          | `3.5.1`    |
+| `spark.version`            | Spark Version is linked with the docker image that is being provided.                                                                                          | `4.1.1`    |
 | `spark.app_name`           | Provide here the name of Spark Application.                                                                                                                    | `localApp` |
 | `spark.log_level`          | Change the logging level of Spark libraries. [DEBUG,INFO,WARN,ERROR]                                                                                           | `WARN`     |
 | `spark.dynamic_allocation` | flag to enable or disable dynamic allocation in spark.                                                                                                         | `true`     |
@@ -71,8 +66,8 @@ provided by this chart:
 | `spark.max_executors`      | set the maximum number to which executors can be horizontally scaled up. This flag will only take effect if dynamic allocation is enabled.                     | `true`     |
 | `spark.driver.cores`       | number of cores to be used by the driver pod.                                                                                                                  | `1`        |
 | `spark.driver.memory`      | define here how much memory to allocate to the driver pod.                                                                                                     | `2g`       |
-| `spark.executor.cores`     | number of cores to be used by each executor pod.                                                                                                               | `7`        |
-| `spark.executor.memory`    | define here how much memory to allocate to each executor pod.                                                                                                  | `16g`      |
+| `spark.executor.cores`     | number of cores to be used by each executor pod.                                                                                                               | `2`        |
+| `spark.executor.memory`    | define here how much memory to allocate to each executor pod.                                                                                                  | `12g`      |
 | `spark.conf`               | set the Spark config here to optimize Spark runtime.                                                                                                           |            |
 
 <hr>
@@ -90,11 +85,12 @@ provided by this chart:
 </details>
 
 <details>
-<summary><code>geo-addressing-spark-hook.*</code></summary>
+<summary><code>manualDataConfig.*</code></summary>
 
-| Parameter                           | Description                                                                                                                                                                                                   | Default |
-|-------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|
-| `geo-addressing-spark-hook.enabled` | flag to enable or disable the hook jobs for identifying the latest vintage. If you have already installed helm chart once and there is no data update, you can set it to `false` in subsequent installations. | `true`  |
+| Parameter                            | Description                                                                                                                                                                              | Default |
+|--------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|
+| `manualDataConfig.enabled`           | If you want to manually provide the path of the reference data installation, enable this flag. Else, a hook job will be run to identify the latest vintage reference data automatically. | `false` |
+| `manualDataConfig.referenceDataPath` | Path to the reference data (along with timestamp folder or vintage)                                                                                                                      | `~`     |
 
 <hr>
 </details>
@@ -102,9 +98,9 @@ provided by this chart:
 <details>
 <summary><code>serviceAccount.*</code></summary>
 
-| Parameter             | Description                                                                 | Default |
-|-----------------------|-----------------------------------------------------------------------------|---------|
-| `serviceAccount.name` | Name of the service account which was used with Spark Operator installation | `spark` |
+| Parameter             | Description                                                                 | Default                |
+|-----------------------|-----------------------------------------------------------------------------|------------------------|
+| `serviceAccount.name` | Name of the service account which was used with Spark Operator installation | `spark-operator-spark` |
 
 <hr>
 </details>
@@ -124,11 +120,13 @@ service.
 | Parameter                   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Default   |
 |-----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
 | `env.IN_SOURCE`             | To define what is the input source for the job. Supported: [local,s3,kafka]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | `s3`      |
+| `env.IS_STREAMING`          | To enable the straming mode. If you want to run as Batch Operation, disable this flag                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | `true`    |
 | `env.OUT_SOURCE`            | To define where to store the result. Supported: [local,s3,kafka]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | `s3`      |
-| `env.READ_OPTIONS`          | To add spark options when reading from source. Ex: "key1=value1,key2=value2". These options would be format/fileType specific. If IN_SOURCE is file system and file type is CSV then this [document](https://spark.apache.org/docs/3.5.1/sql-data-sources-csv.html) can be referred.                                                                                                                                                                                                                                                                          | ``        |
-| `env.WRITE_OPTIONS`         | To add spark options when writing to source. Ex: "key1=value1,key2=value2". These options would be format/fileType specific. If OUT_SOURCE is file system and file type is CSV then this [document](https://spark.apache.org/docs/3.5.1/sql-data-sources-csv.html) can be referred.                                                                                                                                                                                                                                                                           | ``        |
+| `env.READ_OPTIONS`          | To add spark options when reading from source. Ex: "key1=value1 key2=value2". These options would be format/fileType specific. If IN_SOURCE is file system and file type is CSV then this [document](https://spark.apache.org/docs/4.1.1/sql-data-sources-csv.html) can be referred.                                                                                                                                                                                                                                                                          | ``        |
+| `env.WRITE_OPTIONS`         | To add spark options when writing to source. Ex: "key1=value1 key2=value2". These options would be format/fileType specific. If OUT_SOURCE is file system and file type is CSV then this [document](https://spark.apache.org/docs/4.1.1/sql-data-sources-csv.html) can be referred.                                                                                                                                                                                                                                                                           | ``        |
 | `env.STREAM_CHECKPOINT_DIR` | Spark needs a checkpoint directory to keep streaming metadata. Preferably use a persistent object storage like S3 directory for it. If not provided then when redeploying the job, it will not resume from last point but restart from beginning.                                                                                                                                                                                                                                                                                                             | ``        |
-| `env.OPERATION`             | Can be Geocode or Verify.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | `geocode` |
+| `env.OPERATION`             | Provide the operation: [geocode, verify, lookup, reverseGeocode].                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | `geocode` |
+| `env.COUNTRY`               | Provide this parameter if you don't have a country column in the input data. You can also provide country as an INPUT_FIELD and it will be preferred over this value.                                                                                                                                                                                                                                                                                                                                                                                         | `USA`     |
 | `env.RETAIN_COLUMNS`        | To retain the source data columns in the output files.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | `true`    |
 | `env.ERROR_FIELD`           | Column name for errors to record per data.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | `error`   |
 | `env.JSON_RESPONSE`         | If provided then under this column full result will come as a json string.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | ``        |

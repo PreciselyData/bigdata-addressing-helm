@@ -1,3 +1,10 @@
+"""
+Reference Data Extractor for Geo-Addressing.
+
+This module downloads and extracts reference data from the Precisely Data Delivery API
+for geo-addressing functionalities. It organizes data by functionality type and handles
+authentication, download, and extraction processes.
+"""
 import argparse
 import re
 import os
@@ -13,24 +20,21 @@ from zipfile import ZipFile
 import subprocess
 import logging
 
-def current_milli_time(): return int(round(time.time() * 1000))
+def current_milli_time():
+    """Get current time in milliseconds."""
+    return int(round(time.time() * 1000))
 
-COUNTRY_SPD_MAPPING = {
-  "verify-geocode": {
-    "usa": [
-      "Geocoding MLD US#United States#All USA#Spectrum Platform Data",
-      "Geocoding NT Street US#United States#All USA#Spectrum Platform Data",
-      "Geocoding Reverse PRECISELYID#United States#All USA#Spectrum Platform Data"
-    ],
-    "aus": [
-      "Geocoding PSMA Street#Australia#All AUS#Geocoding",
-      "Geocoding GNAF Address Point#Australia#All AUS#Geocoding"
-    ]
-  }
+FUNCTIONALITY_SPD_MAPPING = {
+  "spark-addressing-data": [
+    "Geocoding MLD US#United States#All USA#Spectrum Platform Data",
+    "Geocoding NT Street US#United States#All USA#Spectrum Platform Data",
+    "Geocoding Reverse PRECISELYID#United States#All USA#Spectrum Platform Data",
+  ]
 }
 
 
 class DataDeliveryClient:
+    """Client for interacting with the Precisely Data Delivery API."""
     auth_token = ''
     token_expiration = 0
 
@@ -59,6 +63,7 @@ class DataDeliveryClient:
     def get_deliveries(self, product_name, geography=None, roster_granularity=None, page_number=1, limit=None,
                        min_release_date=None, data_format=None, preferred_format: bool = False,
                        latest: bool = False):
+        """Get data deliveries from the API based on specified criteria."""
         params = {}
         if latest:
             params['byLatest'] = True
@@ -79,26 +84,25 @@ class DataDeliveryClient:
         if preferred_format:
             params['preference'] = 'true'
 
-        try:
-            response = self.get(url=self.pdx_api_url + 'data-deliveries', params=params,
-                                headers=self.create_headers())
-            return json.loads(response.text)
-        except Exception as exception:
-            raise exception
+        response = self.get(url=self.pdx_api_url + 'data-deliveries', params=params,
+                            headers=self.create_headers())
+        return json.loads(response.text)
 
     def create_headers(self):
+        """Create HTTP headers with authorization token."""
         return {
             'Authorization': 'Bearer ' + self.get_auth_token()
         }
 
     def get_auth_token(self):
+        """Get the current authentication token, refreshing if necessary."""
         if not self.auth_token or current_milli_time() > self.token_expiration:
             self.get_new_auth_token()
 
         return self.auth_token
 
     def get_new_auth_token(self):
-
+        """Request a new authentication token from the API."""
         params = {
             'grant_type': 'client_credentials'
         }
@@ -113,57 +117,49 @@ class DataDeliveryClient:
 
         if 'access_token' in response_json:
             self.auth_token = response_json['access_token']
-            self.token_expiration = current_milli_time(
-            ) + (int(response_json['expiresIn']) * 1000)
+            self.token_expiration = current_milli_time() + (int(response_json['expiresIn']) * 1000)
         else:
-            raise Exception(
+            raise ValueError(
                 'An error occurred getting authorization info, please check your api key and shared secret.')
 
     def post(self, url, headers=None, data=None):
-        try:
-            if headers is None:
-                headers = {}
-            if self.app_id:
-                headers['x-pb-appid'] = self.app_id
-                response = requests.post(url=url, data=data, headers=headers)
-            return response
-        except Exception as exception:
-            raise exception
+        """Send a POST request to the specified URL."""
+        if headers is None:
+            headers = {}
+        if self.app_id:
+            headers['x-pb-appid'] = self.app_id
+        response = requests.post(url=url, data=data, headers=headers)
+        return response
 
     def get(self, url, headers=None, params=None):
-        try:
-            if headers is None:
-                headers = {}
-            if self.app_id:
-                headers['x-pb-appid'] = self.app_id
-                response = requests.get(url, stream=True, headers=headers, params=params)
-            return response
-        except Exception as exception:
-            raise exception
+        """Send a GET request to the specified URL."""
+        if headers is None:
+            headers = {}
+        if self.app_id:
+            headers['x-pb-appid'] = self.app_id
+        response = requests.get(url, stream=True, headers=headers, params=params)
+        return response
 
 
 def unzip(path, zip_filename):
+    """Extract a ZIP file to the specified path if the directory is empty."""
     with ZipFile(zip_filename, 'r') as handle:
-        if len(os.listdir(path)) == 0:
-            logging.info("Extracting {:s} to {:s} ...".format(zip_filename, path))
+        if not os.listdir(path):
+            logging.info(f"Extracting {zip_filename} to {path} ...")
             handle.extractall(path=path)
-            logging.info("Extraction completed for {:s} at {:s}".format(zip_filename, path))
+            logging.info(f"Extraction completed for {zip_filename} at {path}")
         else:
-            logging.info("Skipping extraction to {:s} as directory is not empty.".format(path))
+            logging.info(f"Skipping extraction to {path} as directory is not empty.")
 
 
 def get_argument_parser():
+    """Parse command-line arguments for the reference data extractor."""
     parser = argparse.ArgumentParser(description='Interacts with the Digital Data Delivery API.')
     parser.add_argument('--pdx-api-key', dest='pdx_api_key',
                         help='The API key provided by the Software and Data Marketplace portal.',
                         required=True)
     parser.add_argument('--pdx-api-secret', dest='pdx_api_secret',
                         help='The shared secret provided by the Software and Data Marketplace portal.',
-                        required=True)
-    parser.add_argument('--countries', dest='countries',
-                        help='Supported countries are => usa, gbr, deu, aus, fra, can, mex, bra, rus, ' +
-                             'ind, sgp, nzl, jpn, tgl, world',
-                        metavar='[usa gbr deu aus]',
                         required=True)
     parser.add_argument('--local-path', dest='local_path',
                         help='The base path for downloading and extracting spds locally.')
@@ -181,105 +177,107 @@ def get_argument_parser():
     parser.add_argument('--data-mapping',
                         dest='data_mapping',
                         help='Mapping of data in the form of dictionary',
-                        default=COUNTRY_SPD_MAPPING,
+                        default=FUNCTIONALITY_SPD_MAPPING,
                         type=json.loads,
                         required=False)
     return parser.parse_args()
 
 
-def get_products(country_spd_mapping, country_name):
-    product_list = list()
-    for spd in country_spd_mapping.get(country_name, list()):
+def get_products(spd_list):
+    """Get product delivery information from SPD list."""
+    product_list = []
+    for spd in spd_list:
         pieces = spd.split('#')
         product_name = pieces[0]
         geography = pieces[1]
         roster_gran = pieces[2]
         data_format = pieces[3]
-        byLatest = True
+        by_latest = True
         vintage = None
         if len(pieces) > 4:
-            byLatest = False
+            by_latest = False
             vintage = pieces[4]
-        try:
-            search_results = client.get_deliveries(product_name, geography, roster_gran, 1, None, None, data_format,
-                                                   latest=byLatest)
-            if dict(search_results).get('deliveries', None) is None:
-                raise Exception(f'Deliveries are not available for the product: `{product_name}` of the spd: `{spd}` for country: `{country_name}`.')
-            for delivery_info in search_results['deliveries']:
-                if vintage is None or vintage == delivery_info['vintage']:
-                    product_list.append((product_name, delivery_info['downloadUrl']))
-        except Exception as exp:
-            raise exp
+
+        search_results = client.get_deliveries(
+            product_name, geography, roster_gran, 1, None, None, data_format, latest=by_latest
+        )
+        if not search_results.get('deliveries'):
+            raise ValueError(
+                f'Deliveries are not available for the product: `{product_name}` of the spd: `{spd}`.'
+            )
+        for delivery_info in search_results['deliveries']:
+            if vintage is None or vintage == delivery_info['vintage']:
+                product_list.append((product_name, delivery_info['downloadUrl']))
+
     return product_list
 
 
-def download_spds_to_local(products_list, spd_base_path, country_name):
+def download_spds_to_local(products_list, spd_base_path):
+    """Download SPD files from product URLs to local path."""
     for name, url in products_list:
         download_file_name = re.sub(r'.*/(.+)\?.*', r'\1', url)
-        file_path = os.path.join(spd_base_path, country_name, download_file_name)
+        file_path = os.path.join(spd_base_path, download_file_name)
         if not os.path.isfile(file_path):
-            logging.info('Downloading {:s} to {:s} ...'.format(download_file_name, file_path))
+            logging.info(f'Downloading {download_file_name} to {file_path} ...')
             urllib.request.urlretrieve(url, file_path)
-            logging.info('Download complete for {:s} at {:s}'.format(download_file_name, file_path))
+            logging.info(f'Download complete for {download_file_name} at {file_path}')
 
 
-def extract_spds_to_mount_path(country_path_value, extract_path_value, country_name, current_date_folder):
-    for f in os.listdir(country_path_value):
-        country_spd_path = os.path.join(country_path_value, f)
-        try:
-            if f.endswith('.spd'):
-                with ZipFile(country_spd_path, "r") as zip_ref:
-                    data = zip_ref.read('metadata.json')
-                    metadata = json.loads(data)
-                    extract_path_spd = os.path.join(extract_path_value,
-                                                    country_name,
-                                                    current_date_folder,
-                                                    metadata['vintage'],
-                                                    metadata['qualifier'])
-                    os.makedirs(extract_path_spd, exist_ok=True)
-                unzip(extract_path_spd, country_spd_path)
-        except Exception as exp:
-            raise exp
+def extract_spds_to_mount_path(spd_source_path, extract_base_path, timestamp_folder):
+    """Extract SPD files to mount path with vintage and qualifier subdirectories."""
+    for filename in os.listdir(spd_source_path):
+        spd_file_path = os.path.join(spd_source_path, filename)
+        if filename.endswith('.spd'):
+            with ZipFile(spd_file_path, "r") as zip_ref:
+                data = zip_ref.read('metadata.json')
+                metadata = json.loads(data)
+                extract_path_spd = os.path.join(
+                    extract_base_path,
+                    timestamp_folder,
+                    metadata['vintage'],
+                    metadata['qualifier']
+                )
+                os.makedirs(extract_path_spd, exist_ok=True)
+            unzip(extract_path_spd, spd_file_path)
 
 def is_positive_integer(input_string):
+    """Check if the input string represents a positive integer."""
     pattern = r"^[1-9]\d*$"
     return re.match(pattern, input_string)
 
-# Configure logging with a custom format including the timestamp
+
+# Configure logging with timestamp and severity level
 logging.basicConfig(
-    level=logging.INFO,  # Set the minimum level of logging to INFO
-    format='%(asctime)s - %(levelname)s - %(message)s',  # Custom log format
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
 )
 
 args = get_argument_parser()
 
 PDX_API_KEY = args.pdx_api_key
 PDX_SECRET = args.pdx_api_secret
-REQUIRED_COUNTRIES = args.countries
 LOCAL_PATH = args.local_path
-COUNTRY_MAPPING = args.data_mapping
+FUNCTIONALITY_MAPPING = args.data_mapping
 date_folder = args.timestamp
 
 if not is_positive_integer(date_folder):
     logging.error("The timestamp folder value where all of the data is present should be numeric and positive.")
     sys.exit(1)
 
-if not COUNTRY_MAPPING:
-    COUNTRY_MAPPING = COUNTRY_SPD_MAPPING
+if not FUNCTIONALITY_MAPPING:
+    FUNCTIONALITY_MAPPING = FUNCTIONALITY_SPD_MAPPING
 
 if not LOCAL_PATH:
     LOCAL_PATH = os.getcwd()
-provided_countries = REQUIRED_COUNTRIES.strip('[').strip(']').split()
 
-client = DataDeliveryClient(PDX_API_KEY, PDX_SECRET, "SDM_DEMO_APP_3.0.1")
+client = DataDeliveryClient(PDX_API_KEY, PDX_SECRET, "BIGDATA-REFERENCE-DATA-SETUP")
 
 extract_path = args.dest_path
 if not args.dest_path:
     extract_path = "/mnt/data/geoaddressing-data"
 spd_path = os.path.join(LOCAL_PATH, "spds")
 
-logging.info(f"Prepared ConfigMap for Reference Data Installation: {COUNTRY_MAPPING}")
-logging.info(f"Provided Countries for Installation: {provided_countries}")
+logging.info(f"Prepared ConfigMap for Reference Data Installation: {FUNCTIONALITY_MAPPING}")
 
 FAIL_FAST_ENABLED = args.fail_fast
 
@@ -287,63 +285,59 @@ logging.info(f"Current timestamp folder where the reference data will be install
 
 os.makedirs(spd_path, exist_ok=True)
 os.makedirs(extract_path, exist_ok=True)
-for addressing_type, country_mapping in COUNTRY_MAPPING.items():
-    logging.info(f"Reference data setup for the countries of `{addressing_type}` functionality is in progress ...")
-    os.makedirs(os.path.join(spd_path, addressing_type), exist_ok=True)
-    os.makedirs(os.path.join(extract_path, addressing_type), exist_ok=True)
-    for country in provided_countries:
+
+for addressing_type, spd_list in FUNCTIONALITY_MAPPING.items():
+    logging.info(f"Reference data setup for `{addressing_type}` functionality is in progress ...")
+    addressing_type_spd_path = os.path.join(spd_path, addressing_type)
+    addressing_type_extract_path = os.path.join(extract_path, addressing_type)
+    os.makedirs(addressing_type_spd_path, exist_ok=True)
+    os.makedirs(addressing_type_extract_path, exist_ok=True)
+
+    try:
+        logging.info(f"Getting products for `{addressing_type}` functionality ...")
+        products = get_products(spd_list)
+        if not products:
+            raise ValueError(
+                "Either no Deliveries available for provided OR validate the parameters. "
+                "To request access to the particular data, please visit https://data.precisely.com/"
+            )
+
+        download_spds_to_local(products, addressing_type_spd_path)
+
+        spds = os.listdir(addressing_type_spd_path)
+        if not spds:
+            raise ValueError(
+                f"No spds available to extract for {addressing_type}, "
+                f"please check if the pdx data is accessible."
+            )
+
+        extract_spds_to_mount_path(addressing_type_spd_path, addressing_type_extract_path, date_folder)
+
+        logging.info(f'Reference data setup for `{addressing_type}` is completed successfully!')
+        logging.info(f'Deleting local directories of spds as extraction is complete: {addressing_type_spd_path}')
         try:
-            logging.info(f"Reference data setup for the country `{country}` is in progress ...")
-            country_path = os.path.join(spd_path, addressing_type, country)
-            extract_country_path = os.path.join(extract_path, addressing_type, country)
-            os.makedirs(country_path, exist_ok=True)
-            os.makedirs(extract_country_path, exist_ok=True)
-            try:
-                products = get_products(country_mapping, country)
-                if not len(products):
-                    raise Exception(
-                        "Either no Deliveries available for provided OR validate the parameters."
-                        " To request access to the particular data, please visit https://data.precisely.com/")
-            except Exception as ex:
-                raise Exception(f'Exception while getting download url for {country}: {ex}', ex)
+            subprocess.check_output(f'rm -rf {addressing_type_spd_path}', shell=True)
+        except subprocess.CalledProcessError as e:
+            logging.error(
+                f"Unable to delete {addressing_type_spd_path} -> Exception: {e}, Output: {e.output}, "
+                f"StdOut: {e.stdout}, StdErr: {e.stderr}"
+            )
+    except Exception as ex:
+        logging.error(f'Error in data setup for {addressing_type}: {ex}')
+        logging.error(
+            f'Data download and extraction process is not successful for the functionality: {addressing_type}. '
+            f'Please run the setup again for {addressing_type} by fixing the issues and using the same timestamp.'
+        )
+        if FAIL_FAST_ENABLED:
+            sys.exit(1)
 
-            try:
-                download_spds_to_local(products, os.path.join(spd_path, addressing_type), country)
-            except Exception as ex:
-                raise Exception(f'Exception while downloading spds to local for {country}: {ex}', ex)
-
-            spds = os.listdir(spd_path)
-            if spds is None or len(spds) == 0:
-                raise Exception(
-                    f"No spds available to extract for country {country}, "
-                    f"please check if you have provided at lease one country "
-                    "or the pdx data is accessible.")
-
-            try:
-                extract_spds_to_mount_path(country_path, os.path.join(extract_path, addressing_type), country, date_folder)
-            except Exception as ex:
-                raise Exception(f'Exception while extracting spds for {country}: {ex}', ex)
-
-            try:
-                logging.info(f'Reference data setup for `{country}` is completed successfully!')
-                logging.info(f'Deleting local directories of spds as extraction is complete: {country_path}')
-                subprocess.check_output(f'rm -rf {country_path}', shell=True)
-            except subprocess.CalledProcessError as e:
-                logging.error(
-                    f"Unable to delete {country_path} -> Exception: {e}, Output: {e.output}, "
-                    f"StdOut: {e.stdout}, StdErr: {e.stderr}")
-        except Exception as ex:
-            logging.error(ex)
-            logging.error(f'Data download and extraction process is not successful for the country: {country}. '
-                  f'Please run the setup again for {country} by fixing the issues and using the same timestamp.')
-            if FAIL_FAST_ENABLED:
-                sys.exit(1)
-            pass
-
+# Final cleanup: remove all temporary SPD files
 try:
     logging.info('Reference data setup is completed!')
     logging.info(f'Deleting local directory of spd as extraction is complete: {spd_path}')
     subprocess.check_output(f'rm -rf {spd_path}', shell=True)
 except subprocess.CalledProcessError as e:
     logging.error(
-        f"Unable to delete {spd_path} -> Exception: {e}, Output: {e.output}, StdOut: {e.stdout}, StdErr: {e.stderr}")
+        f"Unable to delete {spd_path} -> Exception: {e}, Output: {e.output}, StdOut: {e.stdout}, StdErr: {e.stderr}"
+    )
+

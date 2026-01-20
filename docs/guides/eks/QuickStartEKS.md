@@ -110,15 +110,11 @@ The Geo-Addressing Application relies on reference data for performing geo-addre
 
 You can make use of a [miscellaneous helm chart for installing reference data](../../../charts/eks/reference-data-setup/README.md), please follow the instructions mentioned in the helm chart or run the below command for installing data in EFS or contact Precisely Sales Team for the reference data installation.
 ```shell
-helm install reference-data ./charts/eks/reference-data-setup/ \
---set "global.region=<aws-region>" \
---set "global.nfs.fileSystemId=<efs-file-system-id>" \
---set "reference-data.dataDownload.image.repository=<e.g. 603016229.dkr.ecr.us-east-1.amazonaws.com/reference-data-extractor>" \
---set "reference-data.dataDownload.image.tag=<e.g. 1.0.0>" \
---set "reference-data.config.pdxApiKey=<>pdx-api-key>" \
---set "reference-data.config.pdxSecret=<pdx-api-secret>" \
---set "reference-data.config.countries={usa}" \
---debug --dependency-update --timeout 60m
+helm install addressing-reference-data ./charts/eks/reference-data-setup/ \
+  -f values-reference-data-eks.yaml \
+  --debug \
+  --dependency-update \
+  --timeout 60m
 ```
 
 ## Step 6: Installation of Spark Operator Helm Chart
@@ -136,20 +132,12 @@ helm repo add spark-operator https://kubeflow.github.io/spark-operator
 helm repo update
 
 # Install the operator into the spark-operator namespace and wait for deployments to be ready
-helm install spark-operator spark-operator/spark-operator \ 
-    --namespace spark-operator \
-    --set spark.jobNamespaces={addressing-spark} \
-    --create-namespace \
-    --wait
+helm install spark-operator spark-operator/spark-operator \
+--namespace spark-operator \
+--set spark.jobNamespaces={addressing-spark} \
+--create-namespace \
+--wait
 
-```
-#### Notes
-> If you don't have the helm chart installation, you can also use the following command to install spark-operator
-> 
-> 
-> However, this is not the best practice to install the spark-operator using kubectl apply command.
-```shell
-kubectl apply -f ./spark-opeator.yml
 ```
 ## Step 7: Installation of Geo-Addressing-Spark Helm Chart
 
@@ -157,7 +145,7 @@ kubectl apply -f ./spark-opeator.yml
 
 The simplest way to deploy the geo-addressing-spark application on EKS is by using the provided values.yaml file.
 
-Follow [this user guide](https://help.precisely.com/r/t/1034035260/2025-12-09/Geo-Addressing-SDK-for-Big-Data/pub/Latest/en-US/Geo-Addressing-SDK-for-Big-Data-Guide/Executing-the-Job) which is helpful to understand the parameters to prepare your values.yaml file.
+Follow [this user guide](https://help.precisely.com/r/t/SBD-0301/2025-12-09/Geo-Addressing-SDK-for-Big-Data/pub/Latest/en-US/Geo-Addressing-SDK-for-Big-Data-Guide) which is helpful to understand the parameters to prepare your values.yaml file.
 
 We have provided you a sample [values-geocode-eks.yaml](../../../values-geocode-eks.yaml) file.
 You can modify the parameters as per your requirements and run the following command to install the geo-addressing-spark helm chart:
@@ -171,37 +159,8 @@ helm upgrade --install addressing-spark ./charts/eks/geo-addressing-spark-on-k8s
   --debug
 ```
 
-However, you can also run the helm install command by providing all the mandatory parameters as shown below:
-
-```shell
-helm install addressing-spark ./charts/eks/geo-addressing-spark-on-k8s \
---set "global.nfs.awsRegion=[aws-region]" \ 
---set "global.nfs.fileSystemId=[fileSystemId]" \
---set "global.countries={usa}" \
---set "global.spark.nodeSelector.driver.eks\.amazonaws\.com/nodegroup=[driver-nodegroup]" \
---set "global.spark.nodeSelector.executor.eks\.amazonaws\.com/nodegroup=[executor-nodegroup]" \
---set "geo-addressing-spark.serviceAccount.name=geo-spark-sa" \
---set "geo-addressing-spark.geo-addressing-spark-hook.enabled=true" \
---set "geo-addressing-spark.image.repository=[aws-account-id].dkr.ecr.[aws-region].amazonaws.com/geo-addressing-spark-on-k8s" \
---set "geo-addressing-spark.image.tag=1.0.0" \
---set "geo-addressing-spark.secrets.ACCESS_KEY=[aws-access-key]" \
---set "geo-addressing-spark.secrets.SECRET_KEY=[aws-secret-key]" \
---set "geo-addressing-spark.env.IN_SOURCE=s3" \
---set "geo-addressing-spark.env.OUT_SOURCE=s3" \
---set "geo-addressing-spark.env.file.INPUT_PATH=s3a://[path-to-your-data]" \
---set "geo-addressing-spark.env.file.OUTPUT_PATH=s3a://[path-to-output-folder]" \
---set "geo-addressing-spark.env.READ_OPTIONS=header=true" \
---set "geo-addressing-spark.env.WRITE_OPTIONS=sep=|\,header=true" \
---set "geo-addressing-spark.env.STREAM_CHECKPOINT_DIR=s3a://[path-to-checkpoint-location]" \
---set "geo-addressing-spark.env.INPUT_FIELDS=streetAddress as addressLines[0]\, locationAddress as country" \
---set "geo-addressing-spark.env.OUTPUT_FIELDS=address.formattedStreetAddress as formattedStreetAddress\,address.formattedLocationAddress as formattedLocationAddress\,location.feature.geometry.coordinates.x as x\,location.feature.geometry.coordinates.y as y\,customFields['PB_KEY'] as 'PB_KEY'" \
---namespace addressing-spark \
---create-namespace \
---dependency-update
-```
-
 > NOTE: By default, the geo-addressing-spark helm chart runs a hook job, which identifies the latest reference-data vintage
-> mount path. You can disable the geo-addressing-spark-hook and manually provide reference data information using `global.manualDataConfig`
+> mount path. You can disable the geo-addressing-spark-hook and manually provide reference data information using `global.manualDataConfig.enabled=true`
 >
 > Also, for more information, refer to the comments in [values.yaml](../../../charts/component-charts/geo-addressing-spark-on-k8s-generic/values.yaml)
 

@@ -37,12 +37,10 @@ spec:
             - "{{ .Values.config.pdxApiKey }}"
             - "--pdx-api-secret"
             - "{{ .Values.config.pdxSecret }}"
-            - "--countries"
-            - "{{ .Values.config.countries }}"
             - "--dest-path"
             - "{{ .Values.config.mountBasePath }}"
             - "--data-mapping"
-            - {{ .Values.config.dataConfigMap | quote }}
+            - {{ .Values.config.dataConfigMap | toJson | quote }}
             - "--fail-fast"
             - "{{ .Values.config.failFastEnabled }}"
             {{- if .Values.config.timestampFolder }}

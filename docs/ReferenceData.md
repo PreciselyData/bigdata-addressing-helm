@@ -27,24 +27,23 @@ seamlessly and with zero downtime.
 # Reference Data Structure
 
 As a generalized step, the reference data should exist in the following format only:
-<br>`[basePath]/[addressing-functionality]/[country]/[current-time]/[vintage]/[data]`
+<br>`[basePath]/[folder-name e.g. spark-addressing-data]/[current-timestamp]/[vintage]/[data]`
 
 NOTE: The current-time folder name should always be in the format: `YYMMDDhhmm` e.g. 202311081159
 ```
 basePath/
-├── verify-geocode/
-│   │── usa/
+├── spark-addressing-data/
 │   │   └── 202311081159/
 │   │       └── 202306/
 │   │           ├── data-folder-1/
 │   │           └── ...
-│   │── gbr/
-│   │   └── 202311081159/
-│   │       └── 202307/
+│   │   └── 202511081200/
+│   │       └── 202507/
 │   │           ├── data-folder-1/
 │   │           └── ...
-│   │── ...
 ```
+
+NOTE: The latest data should be provided always.
 
 # Reference Data Installation
 

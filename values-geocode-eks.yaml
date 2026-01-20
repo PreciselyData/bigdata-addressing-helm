@@ -1,12 +1,36 @@
+# This file is an example configuration for deploying the Geo Addressing Spark application on an EKS cluster using Helm.
+# Update the placeholders with your specific configuration details before deploying.
+# Refer to the values.yaml of charts/eks/geo-addressing-spark-on-k8s for more configuration options.
+global:
+  nfs:
+    fileSystemId: <your EFS file system id e.g. "fs-0ccdae49cc2c20">
+    awsRegion: <us-east-1>
+  # If you want to provide the reference data path manually, set manualDataConfig.enabled to true and provide the referenceDataPath.
+  manualDataConfig:
+    enabled: true
+    referenceDataPath: <reference data path e.g. /mnt/data/geoaddressing-data/verify-geocode/usa/202601130631>
+  spark:
+    nodeSelector:
+      driver:
+        # Node Selector for Driver Pod
+        eks.amazonaws.com/nodegroup: geo-addressing-worker
+      executor:
+        # Node Selector for Executor Pod
+        eks.amazonaws.com/nodegroup: geo-addressing-worker
+
 geo-addressing-spark:
   image:
     repository: <image repository e.g. 603016229191.dkr.ecr.us-east-1.amazonaws.com/geo-addressing-spark-on-k8s>
     tag: <image tag>
+  imagePullSecrets: [ ]
+  serviceAccount:
+    name: "spark-operator-spark"
   spark:
-    version: "4.0.1"
+    version: "4.1.1"
+    # Increase in case of large datasets
     executor:
       core: 2
-      memory: "8g"
+      memory: "12g"
     conf:
       # e.g. Spark Configurations---
       "spark.sql.streaming.schemaInference": "true"
@@ -16,6 +40,7 @@ geo-addressing-spark:
     SECRET_KEY: <aws-secret-key>
   ##
   ## Preferences for Geo Addressing SDK
+  ## Keep it the same unless you want to change the default preferences.
   ##
   preferences:
     # Addressing SDK Preferences---
@@ -31,39 +56,20 @@ geo-addressing-spark:
       OUTPUT_PATH: <output file path e.g "s3a://com-precisely/spark-k8s/output/">
       STREAM_CHECKPOINT_DIR: <checkpoint directory e.g. "s3a://com-precisely/spark-k8s/checkpoint">
       USE_HIERARCHY: "true"
-    IS_STREAMING: false
+    IS_STREAMING: true # Set to true for streaming job (runs infinitely), false for batch job
     IN_SOURCE: "s3"
     OUT_SOURCE: "s3"
     OPERATION: "geocode"
+    # Change the READ_OPTIONS and WRITE_OPTIONS as per the input file format.
     READ_OPTIONS: "header=true delimiter=|"
     WRITE_OPTIONS: "header=true delimiter=|"
-
-    # Falls back to country from inputFields if provided in INPUT_FIELDS.
-    COUNTRY: "usa"
     # Provide INPUT_FIELDS and OUTPUT_FIELDS accordingly
     # Refer Geo Addressing Big Data User Guide -> Geo Addressing SDK -> Spark Integration -> Spark Job -> Addressing Job for more information: https://help.precisely.com/r/p/Geo-Addressing-SDK-for-Big-Data/pub/Latest/en-US/Geo-Addressing-SDK-for-Big-Data-Guide
     INPUT_FIELDS: |-
       addressLines[0]=1,2,3,4 city=5 admin1=6 postalCode=7 country=8
     OUTPUT_FIELDS: |-
       'address.formattedStreetAddress as formattedStreetAddress' 'address.formattedAddress as formattedAddress' 'location.feature.geometry.coordinates.x as x' 'location.feature.geometry.coordinates.y as y' \"customFields['PB_KEY'] as 'PB_KEY'\"
+    # Falls back to country from inputFields if provided in INPUT_FIELDS.
+    COUNTRY:
+    # If you don't want complete JSON response from Geo Addressing SDK, set this to empty.
     JSON_RESPONSE: "result_json"
-
-global:
-  # this countries array field is not mandatory if manualDataConfig is used
-  countries:
-    - usa
-  nfs:
-    fileSystemId: <your EFS file system id e.g. "fs-0ccdae49cc2c20">
-  manualDataConfig:
-    enabled: true
-    nameOverride: geo-addressing-spark-data-mnl-config
-    configMapData:
-      verify-geocode.vintage: <reference data path e.g. /mnt/data/geoaddressing-data/verify-geocode/usa/202601130631>
-  spark:
-    nodeSelector:
-      driver:
-        # Node Selector for Driver Pod
-        eks.amazonaws.com/nodegroup: geo-addressing-worker
-      executor:
-        # Node Selector for Executor Pod
-        eks.amazonaws.com/nodegroup: geo-addressing-worker

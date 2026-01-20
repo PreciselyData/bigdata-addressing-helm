@@ -21,7 +21,7 @@ Follow the below steps to create and push the docker image to ECR:
 
 ```shell
 cd ./charts/component-charts/reference-data-setup-generic/docker-images
-docker build . -t reference-data-extractor-geo-addressing-spark:1.0.0
+docker build . -t bigdata-reference-data-extractor:1.0.0
 ```
 
 For AWS EKS:
@@ -29,27 +29,15 @@ For AWS EKS:
 ```shell
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 603016229198.dkr.ecr.us-east-1.amazonaws.com
 
-aws ecr create-repository --repository-name reference-data-extractor-geo-addressing-spark --image-scanning-configuration scanOnPush=true --region [AWS-REGION]
+aws ecr create-repository --repository-name bigdata-reference-data-extractor --image-scanning-configuration scanOnPush=true --region [AWS-REGION]
 
-docker tag reference-data-extractor-geo-addressing-spark:1.0.0 [AWS-ACCOUNT-ID].dkr.ecr.[AWS-REGION].amazonaws.com/reference-data-extractor-geo-addressing-spark:1.0.0
+docker tag bigdata-reference-data-extractor:1.0.0 [AWS-ACCOUNT-ID].dkr.ecr.[AWS-REGION].amazonaws.com/bigdata-reference-data-extractor:1.0.0
 
-docker push [AWS-ACCOUNT-ID].dkr.ecr.[AWS-REGION].amazonaws.com/reference-data-extractor-geo-addressing-spark:1.0.0
+docker push [AWS-ACCOUNT-ID].dkr.ecr.[AWS-REGION].amazonaws.com/bigdata-reference-data-extractor:1.0.0
 ```
 
-For Microsoft AKS:
-
-```shell
-az login
-az acr login --name <registry-name> --subscription <subscription-id>
-
-docker tag reference-data-extractor-geo-addressing-spark:1.0.0 <your-container-registry-name>.azurecr.io/reference-data-extractor-geo-addressing-spark:1.0.0
-
-docker push <your-container-registry-name>.azurecr.io/reference-data-extractor-geo-addressing-spark:1.0.0
-```
 
 ## Step 3: Creating Mounted Storage
-
-For AWS EKS:
 
 We already have scripts to create EFS and link to the current EKS cluster. Please follow the steps
 mentioned [here](../../../scripts/eks/efs-creator/README.md) to create EFS.
@@ -58,18 +46,14 @@ mentioned [here](../../../scripts/eks/efs-creator/README.md) to create EFS.
 
 Run the below command for installation of reference data in EFS:
 
-Edit the [values.yaml](../../eks/reference-data-setup/values.yaml) for providing the information about the reference data to be downloaded.
+Edit the [values.yaml](../../../values-reference-data-eks.yaml) for providing the information about the reference data to be downloaded.
 
 ```shell
-helm install reference-data ./charts/eks/reference-data-setup/ \
---set "global.region=<aws-region>" \
---set "global.nfs.fileSystemId=<efs-file-system-id>" \
---set "reference-data.dataDownload.image.repository=<e.g. 603016229.dkr.ecr.us-east-1.amazonaws.com/reference-data-extractor>" \
---set "reference-data.dataDownload.image.tag=<e.g. 1.0.0>" \
---set "reference-data.config.pdxApiKey=<>pdx-api-key>" \
---set "reference-data.config.pdxSecret=<pdx-api-secret>" \
---set "reference-data.config.countries={usa}" \
---debug --dependency-update --timeout 60m
+helm install addressing-reference-data ./charts/eks/reference-data-setup/ \
+-f values-reference-data-eks.yaml \
+--debug \
+--dependency-update \
+--timeout 60m
 ```
 
 ### Helm Values
@@ -108,25 +92,18 @@ provided by this chart:
 You can provide the information about the reference data to be downloaded in the format of Map/Dictionary. Below is an
 example of default reference data map:
 
-```shell
-{
-  "verify-geocode": {
-    "usa": [
-      "Geocoding MLD US#United States#All USA#Spectrum Platform Data",
-      "Geocoding NT Street US#United States#All USA#Spectrum Platform Data",
-      "Geocoding Reverse PRECISELYID#United States#All USA#Spectrum Platform Data"
-    ],
-    "aus": [
-      "Geocoding PSMA Street#Australia#All AUS#Geocoding",
-      "Geocoding GNAF Address Point#Australia#All AUS#Geocoding"
-    ]
-  }
-}
+```yaml
+  dataConfigMap:
+      spark-addressing-data:
+        # USA
+        - "Geocoding MLD US#United States#All USA#Spectrum Platform Data"
+        - "Geocoding NT Street US#United States#All USA#Spectrum Platform Data"
+        - "Geocoding Reverse PRECISELYID#United States#All USA#Spectrum Platform Data"
+        # Australia
+        - "Geocoding PSMA Street#Australia#All AUS#Geocoding",
+        - "Geocoding GNAF Address Point#Australia#All AUS#Geocoding"
+        # ...
 ```
-
-<br>The format used in the Map is as follows:
-
-`[functionality]:[country]:[reference-data-key]`
 
 <br>The reference data key is in the format:
 
@@ -134,8 +111,6 @@ example of default reference data map:
 
 e.g. `Geocoding NT Street US#United States#All USA#Spectrum Platform Data`
 
-<br>You can create a map of the reference data to be downloaded and override the `global.dataConfigMap` parameter while
-installing the helm chart as follows:
 
 > NOTE: If you want to download a specific vintage of data always, you can pass the vintage parameter as follows:
 >
@@ -151,7 +126,7 @@ commands:
 
 ```shell
 kubectl get pods -w
-kubectl logs -f -l "app.kubernetes.io/name=reference-data"
+kubectl logs -f -l "app.kubernetes.io/name=addressing-reference-data"
 ```
 
 [🔗 Return to `Table of Contents` 🔗](../../../README.md#guides)

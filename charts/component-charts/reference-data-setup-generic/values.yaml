@@ -18,7 +18,6 @@ config:
   pdxApiKey: ~
   pdxSecret: ~
   mountBasePath: "/mnt/data/geoaddressing-data"
-  countries: ~
   dataConfigMap: ~
   failFastEnabled: "false"
   timestampFolder:

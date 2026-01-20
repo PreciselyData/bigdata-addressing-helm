@@ -46,12 +46,8 @@ spec:
              "/tmp/vintage-script/data-vintage.sh",
              "{{- .Values.global.nfs.volumeMountPath }}",
              "{{- .Values.global.nfs.addressingBasePath }}",
-             "{{- .Values.global.nfs.autoCompleteBasePath }}",
-             "{{- .Values.global.nfs.lookupBasePath }}",
-             "{{- .Values.global.nfs.reverseBasePath }}",
              "vintages.properties",
              "{{ .Values.global.dataVintage.configMap.name }}",
-             "{{ .Values.global.countries | join "," }}"
           ]
       terminationGracePeriodSeconds: 0
       {{- with .Values.global.spark.nodeSelector.driver }}

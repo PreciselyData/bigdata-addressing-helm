@@ -54,7 +54,7 @@ spec:
         valueFrom:
           configMapKeyRef:
             name: {{ include "geo-addressing-spark-data-config.name" . }}
-            key: "verify-geocode.vintage"
+            key: {{ printf "%s.%s" .Values.global.nfs.addressingBasePath "vintage" }}
       - name: PREFERENCES_FILE_PATH
         value: "/mnt/data/preferences/preferences.yaml"
       {{- if and (.Values.secrets.ACCESS_KEY) (.Values.secrets.SECRET_KEY) }}
@@ -62,12 +62,12 @@ spec:
         valueFrom:
           secretKeyRef:
             key: "aws_access_key"
-            name: {{include "geo-addressing-spark-secret.name" .}}
+            name: {{ include "geo-addressing-spark-secret.name" . }}
       - name: "SECRET_KEY"
         valueFrom:
           secretKeyRef:
             key: "aws_secret_key"
-            name: {{include "geo-addressing-spark-secret.name" .}}
+            name: {{ include "geo-addressing-spark-secret.name" . }}
       {{- end }}
       {{- range $name, $value := .Values.env }}
       - name: "{{ $name }}"
@@ -100,7 +100,7 @@ spec:
         valueFrom:
           configMapKeyRef:
             name: {{ include "geo-addressing-spark-data-config.name" . }}
-            key: "verify-geocode.vintage"
+            key: {{ printf "%s.%s" .Values.global.nfs.addressingBasePath "vintage" }}
       {{- if and (.Values.secrets.ACCESS_KEY) (.Values.secrets.SECRET_KEY) }}
       - name: "ACCESS_KEY"
         valueFrom:
