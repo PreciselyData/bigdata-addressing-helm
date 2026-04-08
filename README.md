@@ -135,6 +135,7 @@ Product Name: `GEOCODING GEO ADDRESSING BIG DATA DOCKER IMAGE WORLD GLOBAL ALL G
 |-------------------------------------------|---------------|--------------------|
 | `1.0.0/2024.6/18th June 2024` & `5.1.682` | 3.5.1         | `0.1.0`            |
 | `1.0.0/2026.1/20th Jan 2026` & `11.2.463` | 4.1.1         | `1.0.0`            |
+| `1.0.0/2026.4/9th April 2026` & `11.2.690` | 4.1.1         | `1.0.1`            |
 
 > NOTE: The docker images pushed to the image repository should be tagged with the current helm chart version.
 

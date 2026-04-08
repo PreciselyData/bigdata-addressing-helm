@@ -4,3 +4,13 @@
 .idea
 **/*Chart.lock
 **/*.tgz
+ignored
+.DS_Store
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*.zip
+*.tar.gz
+*.tar

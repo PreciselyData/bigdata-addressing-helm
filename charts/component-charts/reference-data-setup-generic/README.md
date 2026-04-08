@@ -21,7 +21,7 @@ Follow the below steps to create and push the docker image to ECR:
 
 ```shell
 cd ./charts/component-charts/reference-data-setup-generic/docker-images
-docker build . -t bigdata-reference-data-extractor:1.0.0
+docker build . -t bigdata-reference-data-extractor:1.0.1
 ```
 
 For AWS EKS:
@@ -31,9 +31,9 @@ aws ecr get-login-password --region us-east-1 | docker login --username AWS --pa
 
 aws ecr create-repository --repository-name bigdata-reference-data-extractor --image-scanning-configuration scanOnPush=true --region [AWS-REGION]
 
-docker tag bigdata-reference-data-extractor:1.0.0 [AWS-ACCOUNT-ID].dkr.ecr.[AWS-REGION].amazonaws.com/bigdata-reference-data-extractor:1.0.0
+docker tag bigdata-reference-data-extractor:1.0.1 [AWS-ACCOUNT-ID].dkr.ecr.[AWS-REGION].amazonaws.com/bigdata-reference-data-extractor:1.0.1
 
-docker push [AWS-ACCOUNT-ID].dkr.ecr.[AWS-REGION].amazonaws.com/bigdata-reference-data-extractor:1.0.0
+docker push [AWS-ACCOUNT-ID].dkr.ecr.[AWS-REGION].amazonaws.com/bigdata-reference-data-extractor:1.0.1
 ```
 
 
@@ -69,7 +69,7 @@ provided by this chart:
 | Parameter          | Description                                              | Default                    |
 |--------------------|----------------------------------------------------------|----------------------------|
 | `image.repository` | the reference-data-extractor container image repository  | `reference-data-extractor` |
-| `image.tag`        | the reference-data-extractor container image version tag | `1.0.0`                    |
+| `image.tag`        | the reference-data-extractor container image version tag | `1.0.1`                    |
 
 <hr>
 </details>

@@ -37,7 +37,7 @@ provided by this chart:
 | Parameter          | Description                                          | Default |
 |--------------------|------------------------------------------------------|---------|
 | `image.repository` | the geo-addressing-spark container image repository  | ``      |
-| `image.tag`        | the geo-addressing-spark container image version tag | `1.0.0` |
+| `image.tag`        | the geo-addressing-spark container image version tag | `1.0.1` |
 
 <hr>
 </details>
